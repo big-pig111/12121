@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易检测状态检查器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .status-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .status-item.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .status-item.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .status-item.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        .status-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .status-value {
+            font-family: monospace;
+            color: #666;
+        }
+        .action-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .action-btn:hover {
+            background: #0056b3;
+        }
+        .action-btn.danger {
+            background: #dc3545;
+        }
+        .action-btn.danger:hover {
+            background: #c82333;
+        }
+        .action-btn.success {
+            background: #28a745;
+        }
+        .action-btn.success:hover {
+            background: #218838;
+        }
+        .log-container {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .config-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 交易检测状态检查器</h1>
+        <p>诊断交易检测功能为什么不工作</p>
+
+        <!-- 检测控制状态 -->
+        <div class="section">
+            <h2>🎯 检测控制状态</h2>
+            <div id="detectionStatus">
+                正在检查检测控制状态...
+            </div>
+            <button class="action-btn" onclick="checkDetectionStatus()">刷新检测状态</button>
+            <button class="action-btn success" onclick="startDetection()">启动检测</button>
+            <button class="action-btn danger" onclick="stopDetection()">停止检测</button>
+        </div>
+
+        <!-- 配置检查 -->
+        <div class="section">
+            <h2>⚙️ 配置检查</h2>
+            <div id="configStatus">
+                正在检查配置...
+            </div>
+            <button class="action-btn" onclick="checkConfig()">刷新配置</button>
+        </div>
+
+        <!-- RPC 连接状态 -->
+        <div class="section">
+            <h2>🌐 RPC 连接状态</h2>
+            <div id="rpcStatus">
+                正在检查 RPC 连接...
+            </div>
+            <button class="action-btn" onclick="checkRpcConnection()">测试 RPC 连接</button>
+        </div>
+
+        <!-- 模块状态 -->
+        <div class="section">
+            <h2>🔧 模块状态</h2>
+            <div id="moduleStatus">
+                正在检查模块状态...
+            </div>
+            <button class="action-btn" onclick="checkModuleStatus()">刷新模块状态</button>
+        </div>
+
+        <!-- 交易记录 -->
+        <div class="section">
+            <h2>📊 交易记录</h2>
+            <div id="transactionStatus">
+                正在检查交易记录...
+            </div>
+            <button class="action-btn" onclick="checkTransactions()">刷新交易记录</button>
+            <button class="action-btn danger" onclick="clearTransactions()">清空交易记录</button>
+        </div>
+
+        <!-- 实时日志 -->
+        <div class="section">
+            <h2>📝 实时日志</h2>
+            <button class="action-btn" onclick="clearLog()">清空日志</button>
+            <button class="action-btn" onclick="exportLog()">导出日志</button>
+            <div id="logContainer" class="log-container">
+                等待日志输出...
+            </div>
+        </div>
+
+        <!-- 配置详情 -->
+        <div class="section">
+            <h2>📋 配置详情</h2>
+            <button class="action-btn" onclick="showConfigDetails()">显示配置详情</button>
+            <div id="configDetails" class="config-display" style="display: none;">
+                配置详情将在这里显示...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logMessages = [];
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logMessages.push(logEntry);
+            
+            const logContainer = document.getElementById('logContainer');
+            logContainer.textContent = logMessages.join('\n');
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 检查检测状态
+        function checkDetectionStatus() {
+            addLog('检查检测控制状态...');
+            
+            const detectionConfig = localStorage.getItem('memeCoinDetection');
+            const statusDiv = document.getElementById('detectionStatus');
+            
+            if (detectionConfig) {
+                try {
+                    const config = JSON.parse(detectionConfig);
+                    let statusHtml = '';
+                    
+                    if (config.isRunning) {
+                        statusHtml = `
+                            <div class="status-item success">
+                                <div class="status-label">✅ 检测状态: 运行中</div>
+                                <div class="status-value">RPC URL: ${config.rpcUrl || '未设置'}</div>
+                                <div class="status-value">Token Address: ${config.tokenAddress || '未设置'}</div>
+                                <div class="status-value">启动时间: ${config.startTime || '未知'}</div>
+                                <div class="status-value">最后更新: ${config.lastUpdate || '未知'}</div>
+                            </div>
+                        `;
+                        addLog('检测控制已启动', 'success');
+                    } else {
+                        statusHtml = `
+                            <div class="status-item warning">
+                                <div class="status-label">⚠️ 检测状态: 已停止</div>
+                                <div class="status-value">配置存在但未运行</div>
+                            </div>
+                        `;
+                        addLog('检测控制已停止', 'warning');
+                    }
+                    
+                    statusDiv.innerHTML = statusHtml;
+                } catch (error) {
+                    statusDiv.innerHTML = `
+                        <div class="status-item error">
+                            <div class="status-label">❌ 检测状态: 配置错误</div>
+                            <div class="status-value">错误: ${error.message}</div>
+                        </div>
+                    `;
+                    addLog(`检测配置解析错误: ${error.message}`, 'error');
+                }
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="status-item error">
+                        <div class="status-label">❌ 检测状态: 未配置</div>
+                        <div class="status-value">未找到检测控制配置</div>
+                    </div>
+                `;
+                addLog('未找到检测控制配置', 'error');
+            }
+        }
+
+        // 检查配置
+        function checkConfig() {
+            addLog('检查系统配置...');
+            
+            const configDiv = document.getElementById('configStatus');
+            let configHtml = '';
+            
+            // 检查 RPC 配置
+            const rpcConfig = localStorage.getItem('memeCoinAdminConfig');
+            if (rpcConfig) {
+                try {
+                    const config = JSON.parse(rpcConfig);
+                    const rpc = config.rpc || {};
+                    const token = config.token || {};
+                    
+                    configHtml += `
+                        <div class="status-item ${rpc.url ? 'success' : 'error'}">
+                            <div class="status-label">🌐 RPC 配置</div>
+                            <div class="status-value">URL: ${rpc.url || '未设置'}</div>
+                            <div class="status-value">连接状态: ${rpc.connected ? '已连接' : '未连接'}</div>
+                        </div>
+                    `;
+                    
+                    configHtml += `
+                        <div class="status-item ${token.address ? 'success' : 'error'}">
+                            <div class="status-label">🪙 Token 配置</div>
+                            <div class="status-value">地址: ${token.address || '未设置'}</div>
+                            <div class="status-value">名称: ${token.name || '未设置'}</div>
+                            <div class="status-value">验证状态: ${token.validated ? '已验证' : '未验证'}</div>
+                        </div>
+                    `;
+                    
+                    addLog('配置检查完成', 'success');
+                } catch (error) {
+                    configHtml += `
+                        <div class="status-item error">
+                            <div class="status-label">❌ 配置错误</div>
+                            <div class="status-value">错误: ${error.message}</div>
+                        </div>
+                    `;
+                    addLog(`配置解析错误: ${error.message}`, 'error');
+                }
+            } else {
+                configHtml += `
+                    <div class="status-item error">
+                        <div class="status-label">❌ 配置未找到</div>
+                        <div class="status-value">未找到管理配置</div>
+                    </div>
+                `;
+                addLog('未找到管理配置', 'error');
+            }
+            
+            configDiv.innerHTML = configHtml;
+        }
+
+        // 检查 RPC 连接
+        function checkRpcConnection() {
+            addLog('测试 RPC 连接...');
+            
+            const rpcConfig = localStorage.getItem('memeCoinAdminConfig');
+            if (!rpcConfig) {
+                addLog('未找到 RPC 配置', 'error');
+                return;
+            }
+            
+            try {
+                const config = JSON.parse(rpcConfig);
+                const rpcUrl = config.rpc?.url;
+                
+                if (!rpcUrl) {
+                    addLog('RPC URL 未设置', 'error');
+                    return;
+                }
+                
+                // 简单的连接测试
+                fetch(rpcUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: 1,
+                        method: 'getHealth'
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        addLog('RPC 连接测试成功', 'success');
+                        document.getElementById('rpcStatus').innerHTML = `
+                            <div class="status-item success">
+                                <div class="status-label">✅ RPC 连接: 正常</div>
+                                <div class="status-value">URL: ${rpcUrl}</div>
+                            </div>
+                        `;
+                    } else {
+                        addLog(`RPC 连接测试失败: ${response.status}`, 'error');
+                        document.getElementById('rpcStatus').innerHTML = `
+                            <div class="status-item error">
+                                <div class="status-label">❌ RPC 连接: 失败</div>
+                                <div class="status-value">状态码: ${response.status}</div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    addLog(`RPC 连接测试失败: ${error.message}`, 'error');
+                    document.getElementById('rpcStatus').innerHTML = `
+                        <div class="status-item error">
+                            <div class="status-label">❌ RPC 连接: 失败</div>
+                            <div class="status-value">错误: ${error.message}</div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                addLog(`RPC 配置解析错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 检查模块状态
+        function checkModuleStatus() {
+            addLog('检查模块状态...');
+            
+            const moduleDiv = document.getElementById('moduleStatus');
+            let moduleHtml = '';
+            
+            // 检查全局对象
+            const modules = {
+                'BackendManager': window.backendManager,
+                'TransactionTracker': window.transactionTracker,
+                'MemeCoinApp': window.memeCoinApp
+            };
+            
+            Object.entries(modules).forEach(([name, module]) => {
+                const status = module ? 'success' : 'error';
+                const label = module ? '✅' : '❌';
+                
+                moduleHtml += `
+                    <div class="status-item ${status}">
+                        <div class="status-label">${label} ${name}</div>
+                        <div class="status-value">状态: ${module ? '已加载' : '未加载'}</div>
+                    </div>
+                `;
+            });
+            
+            moduleDiv.innerHTML = moduleHtml;
+            addLog('模块状态检查完成', 'info');
+        }
+
+        // 检查交易记录
+        function checkTransactions() {
+            addLog('检查交易记录...');
+            
+            const transactionDiv = document.getElementById('transactionStatus');
+            
+            // 检查本地交易记录
+            const localTransactions = localStorage.getItem('memeCoinBackendTransactions');
+            if (localTransactions) {
+                try {
+                    const data = JSON.parse(localTransactions);
+                    const transactions = data.transactions || [];
+                    
+                    transactionDiv.innerHTML = `
+                        <div class="status-item success">
+                            <div class="status-label">📊 本地交易记录</div>
+                            <div class="status-value">交易数量: ${transactions.length}</div>
+                            <div class="status-value">最后更新: ${data.lastUpdate || '未知'}</div>
+                        </div>
+                    `;
+                    
+                    addLog(`找到 ${transactions.length} 条本地交易记录`, 'success');
+                } catch (error) {
+                    transactionDiv.innerHTML = `
+                        <div class="status-item error">
+                            <div class="status-label">❌ 交易记录错误</div>
+                            <div class="status-value">错误: ${error.message}</div>
+                        </div>
+                    `;
+                    addLog(`交易记录解析错误: ${error.message}`, 'error');
+                }
+            } else {
+                transactionDiv.innerHTML = `
+                    <div class="status-item warning">
+                        <div class="status-label">⚠️ 交易记录</div>
+                        <div class="status-value">未找到本地交易记录</div>
+                    </div>
+                `;
+                addLog('未找到本地交易记录', 'warning');
+            }
+        }
+
+        // 启动检测
+        function startDetection() {
+            addLog('尝试启动检测...');
+            
+            const rpcConfig = localStorage.getItem('memeCoinAdminConfig');
+            if (!rpcConfig) {
+                addLog('未找到 RPC 配置，无法启动检测', 'error');
+                return;
+            }
+            
+            try {
+                const config = JSON.parse(rpcConfig);
+                const rpcUrl = config.rpc?.url;
+                const tokenAddress = config.token?.address;
+                
+                if (!rpcUrl || !tokenAddress) {
+                    addLog('RPC URL 或 Token 地址未设置', 'error');
+                    return;
+                }
+                
+                const detectionConfig = {
+                    isRunning: true,
+                    rpcUrl: rpcUrl,
+                    tokenAddress: tokenAddress,
+                    startTime: new Date().toISOString(),
+                    lastUpdate: new Date().toISOString()
+                };
+                
+                localStorage.setItem('memeCoinDetection', JSON.stringify(detectionConfig));
+                addLog('检测控制已启动', 'success');
+                
+                // 刷新状态显示
+                checkDetectionStatus();
+                
+            } catch (error) {
+                addLog(`启动检测失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 停止检测
+        function stopDetection() {
+            addLog('停止检测...');
+            
+            localStorage.removeItem('memeCoinDetection');
+            addLog('检测控制已停止', 'warning');
+            
+            // 刷新状态显示
+            checkDetectionStatus();
+        }
+
+        // 清空交易记录
+        function clearTransactions() {
+            if (confirm('确定要清空所有交易记录吗？')) {
+                localStorage.removeItem('memeCoinBackendTransactions');
+                addLog('交易记录已清空', 'warning');
+                checkTransactions();
+            }
+        }
+
+        // 清空日志
+        function clearLog() {
+            logMessages = [];
+            document.getElementById('logContainer').textContent = '日志已清空...';
+        }
+
+        // 导出日志
+        function exportLog() {
+            const logText = logMessages.join('\n');
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transaction-detection-log-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            addLog('日志已导出', 'info');
+        }
+
+        // 显示配置详情
+        function showConfigDetails() {
+            const detailsDiv = document.getElementById('configDetails');
+            const isVisible = detailsDiv.style.display !== 'none';
+            
+            if (!isVisible) {
+                const allConfigs = {};
+                
+                // 收集所有配置
+                const configKeys = [
+                    'memeCoinAdminConfig',
+                    'memeCoinDetection',
+                    'memeCoinBackendTransactions',
+                    'memeCoinSuccessAddresses',
+                    'memeCoinTokenHolders'
+                ];
+                
+                configKeys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        try {
+                            allConfigs[key] = JSON.parse(value);
+                        } catch (error) {
+                            allConfigs[key] = `解析错误: ${error.message}`;
+                        }
+                    } else {
+                        allConfigs[key] = '未设置';
+                    }
+                });
+                
+                detailsDiv.textContent = JSON.stringify(allConfigs, null, 2);
+                detailsDiv.style.display = 'block';
+                addLog('配置详情已显示', 'info');
+            } else {
+                detailsDiv.style.display = 'none';
+                addLog('配置详情已隐藏', 'info');
+            }
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            addLog('交易检测状态检查器已启动', 'info');
+            
+            // 执行初始检查
+            checkDetectionStatus();
+            checkConfig();
+            checkModuleStatus();
+            checkTransactions();
+            
+            // 设置定时刷新
+            setInterval(() => {
+                checkDetectionStatus();
+            }, 10000); // 每10秒刷新一次检测状态
+        });
+    </script>
+</body>
+</html> 

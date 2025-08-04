@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitepaper Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>白皮书功能测试</h1>
+        <p>点击下面的按钮来测试白皮书功能是否正常工作：</p>
+        
+        <button class="test-button" onclick="testWhitepaper()">测试白皮书</button>
+        <button class="test-button" onclick="checkModules()">检查模块</button>
+        <button class="test-button" onclick="clearStatus()">清除状态</button>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <!-- 加载必要的模块 -->
+    <script src="js/modules/Utils.js"></script>
+    <script src="js/modules/WhitepaperModal.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        let app = null;
+        let whitepaperModal = null;
+
+        // 初始化应用
+        async function initApp() {
+            try {
+                app = new MemeCoinApp();
+                await app.init();
+                console.log('✅ 应用初始化成功');
+                showStatus('应用初始化成功', 'success');
+            } catch (error) {
+                console.error('❌ 应用初始化失败:', error);
+                showStatus('应用初始化失败: ' + error.message, 'error');
+            }
+        }
+
+        // 测试白皮书功能
+        function testWhitepaper() {
+            try {
+                if (app && app.modules.whitepaper) {
+                    console.log('📄 测试白皮书功能...');
+                    app.modules.whitepaper.show();
+                    showStatus('白皮书模态框已打开', 'success');
+                } else {
+                    console.error('❌ 白皮书模块未找到');
+                    showStatus('白皮书模块未找到', 'error');
+                }
+            } catch (error) {
+                console.error('❌ 测试白皮书功能失败:', error);
+                showStatus('测试白皮书功能失败: ' + error.message, 'error');
+            }
+        }
+
+        // 检查模块状态
+        function checkModules() {
+            try {
+                const modules = app ? app.modules : {};
+                const moduleNames = Object.keys(modules);
+                let status = '模块状态检查:\n';
+                
+                moduleNames.forEach(name => {
+                    const module = modules[name];
+                    status += `${name}: ${module ? '✅ 已加载' : '❌ 未加载'}\n`;
+                });
+                
+                console.log(status);
+                showStatus(status, 'success');
+            } catch (error) {
+                console.error('❌ 检查模块状态失败:', error);
+                showStatus('检查模块状态失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示状态信息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        // 清除状态信息
+        function clearStatus() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'none';
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 奖励系统数据互通调试</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="js/modules/BackendManager.js"></script>
+    <script src="reward-control.js"></script>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(31, 41, 55, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            border: 3px solid #FFDD00;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #FFDD00;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .section {
+            background: rgba(17, 24, 39, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4CAF50;
+        }
+        .section h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        .button {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            border: 3px solid #000;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .result {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #FFDD00;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .success { border-left-color: #4CAF50; }
+        .error { border-left-color: #f44336; }
+        .warning { border-left-color: #FF9800; }
+        .info { border-left-color: #2196F3; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .status.success { background: #4CAF50; }
+        .status.error { background: #f44336; }
+        .status.warning { background: #FF9800; }
+        .status.info { background: #2196F3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">🔍 奖励系统数据互通调试</div>
+        
+        <div class="section">
+            <h3>🎯 系统初始化检查</h3>
+            <button class="button" onclick="checkSystemInitialization()">检查系统初始化</button>
+            <button class="button" onclick="initializeSystems()">初始化所有系统</button>
+            <div id="init-result" class="result"></div>
+        </div>
+
+        <div class="grid">
+            <div class="section">
+                <h3>🏆 奖励控制面板状态</h3>
+                <button class="button" onclick="checkRewardControlPanel()">检查控制面板</button>
+                <button class="button" onclick="testSetWinnerAddress()">测试设置获奖地址</button>
+                <div id="control-panel-result" class="result"></div>
+            </div>
+
+            <div class="section">
+                <h3>🎁 领取页面状态</h3>
+                <button class="button" onclick="checkClaimPage()">检查领取页面</button>
+                <button class="button" onclick="simulateWalletConnection()">模拟钱包连接</button>
+                <div id="claim-page-result" class="result"></div>
+            </div>
+        </div>
+
+        <div class="section full-width">
+            <h3>📊 数据存储检查</h3>
+            <button class="button" onclick="checkLocalStorage()">检查 localStorage</button>
+            <button class="button" onclick="checkFirebase()">检查 Firebase</button>
+            <button class="button" onclick="checkBackendManager()">检查 BackendManager</button>
+            <div id="storage-result" class="result"></div>
+        </div>
+
+        <div class="section full-width">
+            <h3>🔗 数据流追踪</h3>
+            <button class="button" onclick="traceDataFlow()">追踪数据流</button>
+            <button class="button" onclick="testDataInteroperability()">测试数据互通</button>
+            <div id="data-flow-result" class="result"></div>
+        </div>
+
+        <div class="section full-width">
+            <h3>🛠️ 修复工具</h3>
+            <button class="button" onclick="fixDataInconsistency()">修复数据不一致</button>
+            <button class="button" onclick="syncAllData()">同步所有数据</button>
+            <button class="button" onclick="resetAllData()">重置所有数据</button>
+            <div id="fix-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let rewardControlPanel = null;
+        let backendManager = null;
+
+        // 检查系统初始化
+        function checkSystemInitialization() {
+            const result = document.getElementById('init-result');
+            let status = '';
+
+            // 检查 BackendManager
+            if (typeof BackendManager !== 'undefined') {
+                status += '✅ BackendManager 类已加载\n';
+            } else {
+                status += '❌ BackendManager 类未加载\n';
+            }
+
+            // 检查 RewardControlPanel
+            if (typeof RewardControlPanel !== 'undefined') {
+                status += '✅ RewardControlPanel 类已加载\n';
+            } else {
+                status += '❌ RewardControlPanel 类未加载\n';
+            }
+
+            // 检查 Firebase
+            if (typeof firebase !== 'undefined') {
+                status += '✅ Firebase SDK 已加载\n';
+            } else {
+                status += '❌ Firebase SDK 未加载\n';
+            }
+
+            // 检查 localStorage
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                status += '✅ localStorage 可用\n';
+            } catch (e) {
+                status += '❌ localStorage 不可用\n';
+            }
+
+            result.textContent = status;
+            result.className = 'result info';
+        }
+
+        // 初始化所有系统
+        async function initializeSystems() {
+            const result = document.getElementById('init-result');
+            result.textContent = '正在初始化系统...\n';
+            result.className = 'result info';
+
+            try {
+                // 初始化 BackendManager
+                if (typeof BackendManager !== 'undefined') {
+                    backendManager = new BackendManager();
+                    backendManager.init();
+                    result.textContent += '✅ BackendManager 初始化成功\n';
+                }
+
+                // 初始化 RewardControlPanel
+                if (typeof RewardControlPanel !== 'undefined') {
+                    rewardControlPanel = new RewardControlPanel();
+                    await rewardControlPanel.init();
+                    result.textContent += '✅ RewardControlPanel 初始化成功\n';
+                }
+
+                result.textContent += '🎉 所有系统初始化完成！';
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent += `❌ 初始化失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 检查奖励控制面板
+        function checkRewardControlPanel() {
+            const result = document.getElementById('control-panel-result');
+            
+            if (!rewardControlPanel) {
+                result.textContent = '❌ RewardControlPanel 未初始化';
+                result.className = 'result error';
+                return;
+            }
+
+            try {
+                const status = rewardControlPanel.getSystemStatus();
+                result.textContent = JSON.stringify(status, null, 2);
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 检查失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 测试设置获奖地址
+        async function testSetWinnerAddress() {
+            const result = document.getElementById('control-panel-result');
+            
+            if (!rewardControlPanel) {
+                result.textContent = '❌ RewardControlPanel 未初始化';
+                result.className = 'result error';
+                return;
+            }
+
+            try {
+                const testAddress = 'zeKuzxAQ2ZeMGDnptUncbXvEYQKKaKYNLygZQANbM2A';
+                await rewardControlPanel.setWinnerAddress(testAddress, 100000);
+                result.textContent = `✅ 测试地址设置成功: ${testAddress}`;
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 设置失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 检查领取页面
+        function checkClaimPage() {
+            const result = document.getElementById('claim-page-result');
+            
+            // 模拟 claim-reward.html 的逻辑
+            const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+            const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+            
+            let status = '';
+            
+            if (rewardAddressData) {
+                const rewardConfig = JSON.parse(rewardAddressData);
+                status += `🏆 获奖地址: ${rewardConfig.address}\n`;
+                status += `💰 奖励金额: ${rewardConfig.amount}\n`;
+                status += `✅ 是否设置: ${rewardConfig.isSet}\n\n`;
+            } else {
+                status += '❌ 未找到获奖地址配置\n\n';
+            }
+            
+            status += `📊 奖励记录总数: ${mainCountdownRewards.length}\n`;
+            const unclaimedRewards = mainCountdownRewards.filter(r => !r.claimed);
+            status += `🎁 待领取奖励: ${unclaimedRewards.length}\n`;
+            
+            result.textContent = status;
+            result.className = 'result info';
+        }
+
+        // 模拟钱包连接
+        function simulateWalletConnection() {
+            const result = document.getElementById('claim-page-result');
+            
+            // 模拟连接的钱包地址
+            const simulatedWalletAddress = 'zeKuzxAQ2ZeMGDnptUncbXvEYQKKaKYNLygZQANbM2A';
+            
+            // 保存模拟连接
+            localStorage.setItem('walletConnection', JSON.stringify({
+                address: simulatedWalletAddress,
+                connectedAt: new Date().toISOString()
+            }));
+            
+            // 检查是否匹配获奖地址
+            const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+            if (rewardAddressData) {
+                const rewardConfig = JSON.parse(rewardAddressData);
+                const isMatch = rewardConfig.address === simulatedWalletAddress;
+                
+                result.textContent = `🔗 模拟钱包连接: ${simulatedWalletAddress}\n`;
+                result.textContent += `🔍 地址匹配: ${isMatch ? '✅ 是' : '❌ 否'}\n`;
+                result.textContent += `🎁 可领取状态: ${isMatch ? '✅ 可领取' : '❌ 不可领取'}`;
+                
+                result.className = isMatch ? 'result success' : 'result warning';
+            } else {
+                result.textContent = '❌ 未找到获奖地址配置';
+                result.className = 'result error';
+            }
+        }
+
+        // 检查 localStorage
+        function checkLocalStorage() {
+            const result = document.getElementById('storage-result');
+            
+            const keys = [
+                'mainCountdownRewardAddress',
+                'mainCountdownRewards',
+                'walletConnection',
+                'memeCoinAdminConfig'
+            ];
+            
+            let status = '📱 localStorage 检查结果:\n\n';
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    try {
+                        const parsed = JSON.parse(value);
+                        status += `✅ ${key}: 存在 (${typeof parsed})\n`;
+                    } catch (e) {
+                        status += `⚠️ ${key}: 存在但格式错误\n`;
+                    }
+                } else {
+                    status += `❌ ${key}: 不存在\n`;
+                }
+            });
+            
+            result.textContent = status;
+            result.className = 'result info';
+        }
+
+        // 检查 Firebase
+        async function checkFirebase() {
+            const result = document.getElementById('storage-result');
+            
+            if (typeof firebase === 'undefined') {
+                result.textContent = '❌ Firebase SDK 未加载';
+                result.className = 'result error';
+                return;
+            }
+            
+            try {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyA5Z5ieEbAcfQX0kxGSn9ldGXhzvAwx_8M",
+                    authDomain: "chat-294cc.firebaseapp.com",
+                    databaseURL: "https://chat-294cc-default-rtdb.firebaseio.com",
+                    projectId: "chat-294cc",
+                    storageBucket: "chat-294cc.firebasestorage.app",
+                    messagingSenderId: "913615304269",
+                    appId: "1:913615304269:web:0274ffaccb8e6b678e4e04",
+                    measurementId: "G-SJR9NDW86B"
+                };
+                
+                const app = firebase.initializeApp(firebaseConfig);
+                const database = firebase.database(app);
+                
+                // 检查连接
+                const connectedRef = database.ref('.info/connected');
+                const snapshot = await connectedRef.once('value');
+                const isConnected = snapshot.val();
+                
+                result.textContent = `🔥 Firebase 连接状态: ${isConnected ? '✅ 已连接' : '❌ 未连接'}\n`;
+                
+                if (isConnected) {
+                    // 检查数据
+                    const mainCountdownRef = database.ref('mainCountdownRewards');
+                    const dataSnapshot = await mainCountdownRef.once('value');
+                    const data = dataSnapshot.val();
+                    
+                    if (data) {
+                        result.textContent += `📊 Firebase 数据: 存在\n`;
+                        result.textContent += JSON.stringify(data, null, 2);
+                    } else {
+                        result.textContent += `📊 Firebase 数据: 不存在`;
+                    }
+                }
+                
+                result.className = 'result info';
+            } catch (error) {
+                result.textContent = `❌ Firebase 检查失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 检查 BackendManager
+        function checkBackendManager() {
+            const result = document.getElementById('storage-result');
+            
+            if (!backendManager) {
+                result.textContent = '❌ BackendManager 未初始化';
+                result.className = 'result error';
+                return;
+            }
+            
+            try {
+                const config = backendManager.getConfig();
+                const rewardAddress = backendManager.getMainCountdownRewardAddress();
+                
+                result.textContent = '🔧 BackendManager 状态:\n\n';
+                result.textContent += `📋 配置加载: ✅\n`;
+                result.textContent += `🏆 获奖地址: ${rewardAddress ? '已设置' : '未设置'}\n`;
+                result.textContent += `🔥 Firebase: ${backendManager.firebaseEnabled ? '启用' : '禁用'}\n`;
+                
+                if (rewardAddress) {
+                    result.textContent += `\n获奖地址详情:\n`;
+                    result.textContent += JSON.stringify(rewardAddress, null, 2);
+                }
+                
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ BackendManager 检查失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 追踪数据流
+        function traceDataFlow() {
+            const result = document.getElementById('data-flow-result');
+            
+            let trace = '🔄 数据流追踪:\n\n';
+            
+            // 1. 控制面板设置
+            trace += '1️⃣ 控制面板设置流程:\n';
+            trace += '   RewardControlPanel.setWinnerAddress() →\n';
+            trace += '   BackendManager.setMainCountdownRewardAddress() →\n';
+            trace += '   localStorage.setItem("mainCountdownRewardAddress") →\n';
+            trace += '   Firebase database.ref("mainCountdownRewards").set()\n\n';
+            
+            // 2. 领取页面检查
+            trace += '2️⃣ 领取页面检查流程:\n';
+            trace += '   localStorage.getItem("mainCountdownRewardAddress") →\n';
+            trace += '   检查钱包地址匹配 →\n';
+            trace += '   创建/检查奖励记录 →\n';
+            trace += '   显示可领取状态\n\n';
+            
+            // 3. 当前状态检查
+            trace += '3️⃣ 当前数据状态:\n';
+            
+            const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+            if (rewardAddressData) {
+                const rewardConfig = JSON.parse(rewardAddressData);
+                trace += `   ✅ 获奖地址配置: ${rewardConfig.address}\n`;
+            } else {
+                trace += `   ❌ 获奖地址配置: 不存在\n`;
+            }
+            
+            const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+            trace += `   📊 奖励记录: ${mainCountdownRewards.length} 条\n`;
+            
+            const walletConnection = localStorage.getItem('walletConnection');
+            if (walletConnection) {
+                const connection = JSON.parse(walletConnection);
+                trace += `   🔗 钱包连接: ${connection.address}\n`;
+            } else {
+                trace += `   ❌ 钱包连接: 未连接\n`;
+            }
+            
+            result.textContent = trace;
+            result.className = 'result info';
+        }
+
+        // 测试数据互通
+        function testDataInteroperability() {
+            const result = document.getElementById('data-flow-result');
+            
+            let test = '🧪 数据互通测试:\n\n';
+            
+            // 测试 1: 控制面板 → localStorage
+            const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+            if (rewardAddressData) {
+                test += '✅ 测试1: 控制面板 → localStorage ✓\n';
+            } else {
+                test += '❌ 测试1: 控制面板 → localStorage ✗\n';
+            }
+            
+            // 测试 2: localStorage → 领取页面
+            const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+            if (mainCountdownRewards.length > 0) {
+                test += '✅ 测试2: localStorage → 领取页面 ✓\n';
+            } else {
+                test += '❌ 测试2: localStorage → 领取页面 ✗\n';
+            }
+            
+            // 测试 3: 钱包连接 → 地址匹配
+            const walletConnection = localStorage.getItem('walletConnection');
+            if (walletConnection && rewardAddressData) {
+                const connection = JSON.parse(walletConnection);
+                const rewardConfig = JSON.parse(rewardAddressData);
+                const isMatch = connection.address === rewardConfig.address;
+                
+                if (isMatch) {
+                    test += '✅ 测试3: 钱包连接 → 地址匹配 ✓\n';
+                } else {
+                    test += '⚠️ 测试3: 钱包连接 → 地址不匹配\n';
+                }
+            } else {
+                test += '❌ 测试3: 钱包连接 → 地址匹配 ✗\n';
+            }
+            
+            // 测试 4: BackendManager 一致性
+            if (backendManager) {
+                const bmRewardAddress = backendManager.getMainCountdownRewardAddress();
+                if (bmRewardAddress && rewardAddressData) {
+                    const bmConfig = bmRewardAddress;
+                    const lsConfig = JSON.parse(rewardAddressData);
+                    
+                    if (bmConfig.address === lsConfig.address) {
+                        test += '✅ 测试4: BackendManager 一致性 ✓\n';
+                    } else {
+                        test += '❌ 测试4: BackendManager 不一致 ✗\n';
+                    }
+                } else {
+                    test += '❌ 测试4: BackendManager 一致性 ✗\n';
+                }
+            } else {
+                test += '❌ 测试4: BackendManager 一致性 ✗\n';
+            }
+            
+            result.textContent = test;
+            result.className = 'result info';
+        }
+
+        // 修复数据不一致
+        function fixDataInconsistency() {
+            const result = document.getElementById('fix-result');
+            
+            try {
+                // 确保 BackendManager 和 localStorage 一致
+                if (backendManager) {
+                    const bmRewardAddress = backendManager.getMainCountdownRewardAddress();
+                    if (bmRewardAddress) {
+                        localStorage.setItem('mainCountdownRewardAddress', JSON.stringify(bmRewardAddress));
+                        result.textContent = '✅ 已同步 BackendManager 数据到 localStorage';
+                    } else {
+                        result.textContent = '⚠️ BackendManager 中没有获奖地址数据';
+                    }
+                } else {
+                    result.textContent = '❌ BackendManager 未初始化';
+                }
+                
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 修复失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 同步所有数据
+        async function syncAllData() {
+            const result = document.getElementById('fix-result');
+            
+            try {
+                if (backendManager) {
+                    await backendManager.syncAllToFirebase();
+                    result.textContent = '✅ 所有数据已同步到 Firebase';
+                } else {
+                    result.textContent = '❌ BackendManager 未初始化';
+                }
+                
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 同步失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 重置所有数据
+        function resetAllData() {
+            const result = document.getElementById('fix-result');
+            
+            try {
+                // 清除所有相关数据
+                localStorage.removeItem('mainCountdownRewardAddress');
+                localStorage.removeItem('mainCountdownRewards');
+                localStorage.removeItem('walletConnection');
+                
+                result.textContent = '✅ 所有奖励相关数据已重置';
+                result.className = 'result success';
+            } catch (error) {
+                result.textContent = `❌ 重置失败: ${error.message}`;
+                result.className = 'result error';
+            }
+        }
+
+        // 页面加载时自动检查
+        window.addEventListener('load', () => {
+            checkSystemInitialization();
+        });
+    </script>
+</body>
+</html> 

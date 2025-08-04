@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易检测调试工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .section {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        .status-value {
+            color: #718096;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .status-success {
+            color: #38a169;
+        }
+        
+        .status-error {
+            color: #e53e3e;
+        }
+        
+        .status-warning {
+            color: #d69e2e;
+        }
+        
+        .config-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .action-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-button.danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .action-button.success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .log-area {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .test-result.success {
+            background: #f0fff4;
+            color: #38a169;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .test-result.error {
+            background: #fff5f5;
+            color: #e53e3e;
+            border: 1px solid #feb2b2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 交易检测调试工具</h1>
+        
+        <!-- 模块状态检查 -->
+        <div class="section">
+            <h3>📦 模块状态检查</h3>
+            <div class="status-item">
+                <span class="status-label">TransactionTracker:</span>
+                <span class="status-value" id="transactionTrackerStatus">检查中...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">BackendManager:</span>
+                <span class="status-value" id="backendManagerStatus">检查中...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">MemeCoinApp:</span>
+                <span class="status-value" id="memeCoinAppStatus">检查中...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Solana Web3:</span>
+                <span class="status-value" id="solanaWeb3Status">检查中...</span>
+            </div>
+        </div>
+        
+        <!-- 配置检查 -->
+        <div class="section">
+            <h3>⚙️ 配置检查</h3>
+            <div class="status-item">
+                <span class="status-label">检测控制配置:</span>
+                <span class="status-value" id="detectionConfigStatus">检查中...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">RPC 配置:</span>
+                <span class="status-value" id="rpcConfigStatus">检查中...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Token 地址:</span>
+                <span class="status-value" id="tokenAddressStatus">检查中...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">检测状态:</span>
+                <span class="status-value" id="detectionStatus">检查中...</span>
+            </div>
+            
+            <div id="configDetails" class="config-display" style="display: none;"></div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="section">
+            <h3>🔧 操作</h3>
+            <button class="action-button" onclick="refreshStatus()">🔄 刷新状态</button>
+            <button class="action-button" onclick="enableDetection()">✅ 启用检测</button>
+            <button class="action-button danger" onclick="disableDetection()">❌ 禁用检测</button>
+            <button class="action-button" onclick="testConnection()">🌐 测试连接</button>
+            <button class="action-button" onclick="startManualTracking()">🚀 手动启动跟踪</button>
+            <button class="action-button" onclick="clearLogs()">🧹 清除日志</button>
+        </div>
+        
+        <!-- 测试结果 -->
+        <div class="section">
+            <h3>🧪 测试结果</h3>
+            <div id="testResults"></div>
+        </div>
+        
+        <!-- 日志区域 -->
+        <div class="section">
+            <h3>📝 调试日志</h3>
+            <div class="log-area" id="logArea">
+                等待操作...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let logs = [];
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('🔧 交易检测调试工具已启动');
+            refreshStatus();
+        });
+        
+        // 刷新状态
+        function refreshStatus() {
+            addLog('🔄 刷新状态...');
+            
+            // 检查模块状态
+            checkModuleStatus();
+            
+            // 检查配置状态
+            checkConfigStatus();
+            
+            addLog('✅ 状态刷新完成');
+        }
+        
+        // 检查模块状态
+        function checkModuleStatus() {
+            // TransactionTracker
+            const transactionTrackerLoaded = typeof window.TransactionTracker !== 'undefined';
+            document.getElementById('transactionTrackerStatus').textContent = 
+                transactionTrackerLoaded ? '✅ 已加载' : '❌ 未加载';
+            document.getElementById('transactionTrackerStatus').className = 
+                'status-value ' + (transactionTrackerLoaded ? 'status-success' : 'status-error');
+            
+            // BackendManager
+            const backendManagerLoaded = typeof window.BackendManager !== 'undefined';
+            document.getElementById('backendManagerStatus').textContent = 
+                backendManagerLoaded ? '✅ 已加载' : '❌ 未加载';
+            document.getElementById('backendManagerStatus').className = 
+                'status-value ' + (backendManagerLoaded ? 'status-success' : 'status-error');
+            
+            // MemeCoinApp
+            const memeCoinAppLoaded = typeof window.memeCoinApp !== 'undefined';
+            document.getElementById('memeCoinAppStatus').textContent = 
+                memeCoinAppLoaded ? '✅ 已初始化' : '❌ 未初始化';
+            document.getElementById('memeCoinAppStatus').className = 
+                'status-value ' + (memeCoinAppLoaded ? 'status-success' : 'status-error');
+            
+            // Solana Web3
+            const solanaWeb3Loaded = typeof window.solanaWeb3 !== 'undefined' || typeof window.web3 !== 'undefined';
+            document.getElementById('solanaWeb3Status').textContent = 
+                solanaWeb3Loaded ? '✅ 已加载' : '❌ 未加载';
+            document.getElementById('solanaWeb3Status').className = 
+                'status-value ' + (solanaWeb3Loaded ? 'status-success' : 'status-error');
+        }
+        
+        // 检查配置状态
+        function checkConfigStatus() {
+            // 检测控制配置
+            const detectionConfig = localStorage.getItem('memeCoinDetection');
+            if (detectionConfig) {
+                try {
+                    const config = JSON.parse(detectionConfig);
+                    document.getElementById('detectionConfigStatus').textContent = '✅ 已配置';
+                    document.getElementById('detectionConfigStatus').className = 'status-value status-success';
+                    
+                    // 显示详细配置
+                    document.getElementById('configDetails').style.display = 'block';
+                    document.getElementById('configDetails').textContent = JSON.stringify(config, null, 2);
+                    
+                    // 检查各个配置项
+                    document.getElementById('detectionStatus').textContent = 
+                        config.isRunning ? '✅ 运行中' : '❌ 已停止';
+                    document.getElementById('detectionStatus').className = 
+                        'status-value ' + (config.isRunning ? 'status-success' : 'status-error');
+                    
+                    document.getElementById('rpcConfigStatus').textContent = 
+                        config.rpcUrl ? '✅ 已设置' : '❌ 未设置';
+                    document.getElementById('rpcConfigStatus').className = 
+                        'status-value ' + (config.rpcUrl ? 'status-success' : 'status-error');
+                    
+                    document.getElementById('tokenAddressStatus').textContent = 
+                        config.tokenAddress ? '✅ 已设置' : '❌ 未设置';
+                    document.getElementById('tokenAddressStatus').className = 
+                        'status-value ' + (config.tokenAddress ? 'status-success' : 'status-error');
+                    
+                } catch (error) {
+                    document.getElementById('detectionConfigStatus').textContent = '❌ 配置错误';
+                    document.getElementById('detectionConfigStatus').className = 'status-value status-error';
+                    addLog('❌ 检测配置解析失败: ' + error.message);
+                }
+            } else {
+                document.getElementById('detectionConfigStatus').textContent = '❌ 未配置';
+                document.getElementById('detectionConfigStatus').className = 'status-value status-error';
+                document.getElementById('configDetails').style.display = 'none';
+            }
+        }
+        
+        // 启用检测
+        function enableDetection() {
+            addLog('🔧 启用交易检测...');
+            
+            try {
+                const currentConfig = localStorage.getItem('memeCoinDetection');
+                let config = currentConfig ? JSON.parse(currentConfig) : {};
+                
+                config.isRunning = true;
+                config.lastUpdated = new Date().toISOString();
+                
+                localStorage.setItem('memeCoinDetection', JSON.stringify(config));
+                
+                addLog('✅ 检测已启用');
+                addTestResult('检测启用', 'success', '交易检测已成功启用');
+                
+                // 如果应用已初始化，尝试启动跟踪
+                if (typeof window.memeCoinApp !== 'undefined') {
+                    const transactionModule = window.memeCoinApp.getTransactionTracker();
+                    if (transactionModule && config.tokenAddress) {
+                        try {
+                            transactionModule.startTracking(config.tokenAddress);
+                            addLog('🚀 交易跟踪已启动');
+                        } catch (error) {
+                            addLog('❌ 启动交易跟踪失败: ' + error.message);
+                        }
+                    }
+                }
+                
+                refreshStatus();
+                
+            } catch (error) {
+                addLog('❌ 启用检测失败: ' + error.message);
+                addTestResult('检测启用', 'error', '启用失败: ' + error.message);
+            }
+        }
+        
+        // 禁用检测
+        function disableDetection() {
+            addLog('🔧 禁用交易检测...');
+            
+            try {
+                const currentConfig = localStorage.getItem('memeCoinDetection');
+                let config = currentConfig ? JSON.parse(currentConfig) : {};
+                
+                config.isRunning = false;
+                config.lastUpdated = new Date().toISOString();
+                
+                localStorage.setItem('memeCoinDetection', JSON.stringify(config));
+                
+                addLog('✅ 检测已禁用');
+                addTestResult('检测禁用', 'success', '交易检测已成功禁用');
+                
+                refreshStatus();
+                
+            } catch (error) {
+                addLog('❌ 禁用检测失败: ' + error.message);
+                addTestResult('检测禁用', 'error', '禁用失败: ' + error.message);
+            }
+        }
+        
+        // 测试连接
+        function testConnection() {
+            addLog('🌐 测试 Solana 连接...');
+            
+            const detectionConfig = localStorage.getItem('memeCoinDetection');
+            if (!detectionConfig) {
+                addLog('❌ 未找到检测配置');
+                addTestResult('连接测试', 'error', '未找到检测配置');
+                return;
+            }
+            
+            try {
+                const config = JSON.parse(detectionConfig);
+                if (!config.rpcUrl) {
+                    addLog('❌ 未设置 RPC URL');
+                    addTestResult('连接测试', 'error', '未设置 RPC URL');
+                    return;
+                }
+                
+                // 简单的连接测试
+                fetch(config.rpcUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: 1,
+                        method: 'getHealth'
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        addLog('✅ RPC 连接成功');
+                        addTestResult('连接测试', 'success', 'RPC 连接正常');
+                    } else {
+                        addLog('❌ RPC 连接失败: ' + response.status);
+                        addTestResult('连接测试', 'error', 'RPC 连接失败: ' + response.status);
+                    }
+                })
+                .catch(error => {
+                    addLog('❌ RPC 连接错误: ' + error.message);
+                    addTestResult('连接测试', 'error', '连接错误: ' + error.message);
+                });
+                
+            } catch (error) {
+                addLog('❌ 连接测试失败: ' + error.message);
+                addTestResult('连接测试', 'error', '测试失败: ' + error.message);
+            }
+        }
+        
+        // 手动启动跟踪
+        function startManualTracking() {
+            addLog('🚀 手动启动交易跟踪...');
+            
+            if (typeof window.memeCoinApp === 'undefined') {
+                addLog('❌ MemeCoinApp 未初始化');
+                addTestResult('手动跟踪', 'error', '应用未初始化');
+                return;
+            }
+            
+            const transactionModule = window.memeCoinApp.getTransactionTracker();
+            if (!transactionModule) {
+                addLog('❌ TransactionTracker 模块未找到');
+                addTestResult('手动跟踪', 'error', '交易模块未找到');
+                return;
+            }
+            
+            const detectionConfig = localStorage.getItem('memeCoinDetection');
+            if (!detectionConfig) {
+                addLog('❌ 未找到检测配置');
+                addTestResult('手动跟踪', 'error', '未找到检测配置');
+                return;
+            }
+            
+            try {
+                const config = JSON.parse(detectionConfig);
+                if (!config.tokenAddress) {
+                    addLog('❌ 未设置 Token 地址');
+                    addTestResult('手动跟踪', 'error', '未设置 Token 地址');
+                    return;
+                }
+                
+                transactionModule.startTracking(config.tokenAddress);
+                addLog('✅ 交易跟踪已启动');
+                addTestResult('手动跟踪', 'success', '交易跟踪已启动');
+                
+            } catch (error) {
+                addLog('❌ 启动跟踪失败: ' + error.message);
+                addTestResult('手动跟踪', 'error', '启动失败: ' + error.message);
+            }
+        }
+        
+        // 添加测试结果
+        function addTestResult(title, type, message) {
+            const testResults = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>${title}:</strong> ${message}`;
+            testResults.appendChild(resultDiv);
+            
+            // 5秒后自动移除
+            setTimeout(() => {
+                resultDiv.remove();
+            }, 5000);
+        }
+        
+        // 添加日志
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${message}`);
+            
+            // 保持最多100条日志
+            if (logs.length > 100) {
+                logs.shift();
+            }
+            
+            document.getElementById('logArea').textContent = logs.join('\n');
+            document.getElementById('logArea').scrollTop = document.getElementById('logArea').scrollHeight;
+        }
+        
+        // 清除日志
+        function clearLogs() {
+            logs = [];
+            document.getElementById('logArea').textContent = '日志已清除...';
+            document.getElementById('testResults').innerHTML = '';
+        }
+        
+        // 定期刷新状态
+        setInterval(() => {
+            checkModuleStatus();
+        }, 5000);
+    </script>
+</body>
+</html> 

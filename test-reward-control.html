@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奖励控制面板测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎁 奖励控制面板测试</h1>
+    
+    <div class="test-section">
+        <h2>初始化测试</h2>
+        <button class="test-button" onclick="testInitialization()">测试初始化</button>
+        <div id="init-result" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>连接测试</h2>
+        <button class="test-button" onclick="testConnection()">测试Firebase连接</button>
+        <div id="connection-result" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>获奖地址测试</h2>
+        <input type="text" id="testAddress" placeholder="输入测试地址" style="width: 300px; padding: 8px; margin: 5px;">
+        <input type="number" id="testAmount" value="100000" placeholder="奖励积分" style="width: 100px; padding: 8px; margin: 5px;">
+        <br>
+        <button class="test-button" onclick="testSetWinnerAddress()">设置获奖地址</button>
+        <button class="test-button" onclick="testGetWinnerAddress()">获取获奖地址</button>
+        <button class="test-button" onclick="testClearWinnerAddress()">清除获奖地址</button>
+        <div id="winner-result" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>系统状态测试</h2>
+        <button class="test-button" onclick="testSystemStatus()">获取系统状态</button>
+        <div id="status-result" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>奖励记录测试</h2>
+        <button class="test-button" onclick="testGetAllRewards()">获取所有奖励</button>
+        <button class="test-button" onclick="testGetClaimedRewards()">获取已领取奖励</button>
+        <button class="test-button" onclick="testGetPendingRewards()">获取待领取奖励</button>
+        <div id="rewards-result" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>数据导出/导入测试</h2>
+        <button class="test-button" onclick="testExportData()">导出数据</button>
+        <button class="test-button" onclick="testImportData()">导入数据</button>
+        <div id="data-result" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>重置测试</h2>
+        <button class="test-button" onclick="testResetAll()">重置所有数据</button>
+        <div id="reset-result" class="test-result"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <!-- BackendManager -->
+    <script src="js/modules/BackendManager.js"></script>
+    
+    <!-- Reward Control Panel -->
+    <script src="reward-control.js"></script>
+    
+    <script>
+        // 测试初始化
+        async function testInitialization() {
+            const resultDiv = document.getElementById('init-result');
+            resultDiv.textContent = '正在初始化...';
+            resultDiv.className = 'test-result';
+            
+            try {
+                const success = await window.rewardControlPanel.init();
+                if (success) {
+                    resultDiv.textContent = '✅ 初始化成功！';
+                    resultDiv.className = 'test-result success';
+                } else {
+                    resultDiv.textContent = '❌ 初始化失败';
+                    resultDiv.className = 'test-result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ 初始化错误: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试连接
+        async function testConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.textContent = '正在检查连接...';
+            resultDiv.className = 'test-result';
+            
+            try {
+                const status = await window.rewardControlPanel.checkFirebaseConnection();
+                resultDiv.textContent = `连接状态: ${status.connected ? '✅ 已连接' : '❌ 未连接'}\n消息: ${status.message}`;
+                resultDiv.className = status.connected ? 'test-result success' : 'test-result error';
+            } catch (error) {
+                resultDiv.textContent = '❌ 连接检查错误: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试设置获奖地址
+        async function testSetWinnerAddress() {
+            const address = document.getElementById('testAddress').value.trim();
+            const amount = parseInt(document.getElementById('testAmount').value);
+            const resultDiv = document.getElementById('winner-result');
+            
+            if (!address) {
+                resultDiv.textContent = '❌ 请输入测试地址';
+                resultDiv.className = 'test-result error';
+                return;
+            }
+            
+            resultDiv.textContent = '正在设置获奖地址...';
+            resultDiv.className = 'test-result';
+            
+            try {
+                const result = await window.rewardControlPanel.setWinnerAddress(address, amount);
+                resultDiv.textContent = `✅ 设置成功！\n地址: ${result.data.address}\n积分: ${result.data.amount}`;
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 设置失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试获取获奖地址
+        function testGetWinnerAddress() {
+            const resultDiv = document.getElementById('winner-result');
+            
+            try {
+                const rewardData = window.rewardControlPanel.getCurrentWinnerAddress();
+                if (rewardData && rewardData.address) {
+                    resultDiv.textContent = `✅ 当前获奖地址:\n地址: ${rewardData.address}\n积分: ${rewardData.amount}\n设置状态: ${rewardData.isSet ? '已设置' : '未设置'}`;
+                    resultDiv.className = 'test-result success';
+                } else {
+                    resultDiv.textContent = '❌ 当前未设置获奖地址';
+                    resultDiv.className = 'test-result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = '❌ 获取失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试清除获奖地址
+        async function testClearWinnerAddress() {
+            const resultDiv = document.getElementById('winner-result');
+            
+            if (!confirm('确定要清除获奖地址吗？')) {
+                return;
+            }
+            
+            resultDiv.textContent = '正在清除获奖地址...';
+            resultDiv.className = 'test-result';
+            
+            try {
+                await window.rewardControlPanel.clearWinnerAddress();
+                resultDiv.textContent = '✅ 获奖地址已清除';
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 清除失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试系统状态
+        function testSystemStatus() {
+            const resultDiv = document.getElementById('status-result');
+            
+            try {
+                const status = window.rewardControlPanel.getSystemStatus();
+                resultDiv.textContent = `系统状态:\n初始化: ${status.initialized ? '✅' : '❌'}\nFirebase连接: ${status.firebaseConnected ? '✅' : '❌'}\nBackendManager: ${status.backendManagerAvailable ? '✅' : '❌'}\n总奖励数: ${status.totalRewards}\n已领取: ${status.claimedRewards}\n待领取: ${status.pendingRewards}`;
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 获取状态失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试获取所有奖励
+        function testGetAllRewards() {
+            const resultDiv = document.getElementById('rewards-result');
+            
+            try {
+                const rewards = window.rewardControlPanel.getAllRewards();
+                resultDiv.textContent = `所有奖励记录 (${rewards.length} 个):\n${JSON.stringify(rewards, null, 2)}`;
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 获取奖励失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试获取已领取奖励
+        function testGetClaimedRewards() {
+            const resultDiv = document.getElementById('rewards-result');
+            
+            try {
+                const rewards = window.rewardControlPanel.getClaimedRewards();
+                resultDiv.textContent = `已领取奖励 (${rewards.length} 个):\n${JSON.stringify(rewards, null, 2)}`;
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 获取已领取奖励失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试获取待领取奖励
+        function testGetPendingRewards() {
+            const resultDiv = document.getElementById('rewards-result');
+            
+            try {
+                const rewards = window.rewardControlPanel.getPendingRewards();
+                resultDiv.textContent = `待领取奖励 (${rewards.length} 个):\n${JSON.stringify(rewards, null, 2)}`;
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 获取待领取奖励失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试导出数据
+        function testExportData() {
+            const resultDiv = document.getElementById('data-result');
+            
+            try {
+                const result = window.rewardControlPanel.exportRewardData();
+                resultDiv.textContent = '✅ 数据导出成功！文件已下载到本地。';
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 导出失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 测试导入数据
+        function testImportData() {
+            const resultDiv = document.getElementById('data-result');
+            
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    resultDiv.textContent = '正在导入数据...';
+                    resultDiv.className = 'test-result';
+                    
+                    try {
+                        await window.rewardControlPanel.importRewardData(file);
+                        resultDiv.textContent = '✅ 数据导入成功！';
+                        resultDiv.className = 'test-result success';
+                    } catch (error) {
+                        resultDiv.textContent = '❌ 导入失败: ' + error.message;
+                        resultDiv.className = 'test-result error';
+                    }
+                }
+            };
+            input.click();
+        }
+
+        // 测试重置所有数据
+        async function testResetAll() {
+            const resultDiv = document.getElementById('reset-result');
+            
+            if (!confirm('确定要重置所有数据吗？这将清除所有奖励记录。')) {
+                return;
+            }
+            
+            resultDiv.textContent = '正在重置数据...';
+            resultDiv.className = 'test-result';
+            
+            try {
+                await window.rewardControlPanel.resetAllRewards();
+                resultDiv.textContent = '✅ 所有数据已重置！';
+                resultDiv.className = 'test-result success';
+            } catch (error) {
+                resultDiv.textContent = '❌ 重置失败: ' + error.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+
+        // 页面加载时自动初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('奖励控制面板测试页面已加载');
+            console.log('请先点击"测试初始化"按钮');
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Coin Countdown & Solana Tracker</title>
+    <meta name="description" content="Countdown to the next big meme coin launch with real-time Solana transaction tracking! TO THE MOON! 🚀">
+    <meta name="keywords" content="meme coin, crypto, countdown, launch, moon, solana, rpc, transaction">
+    
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Font Awesome icons -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Solana Web3.js -->
+    <script src="https://unpkg.com/@solana/web3.js@1.87.6/lib/index.iife.min.js"></script>
+    
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // Firebase Configuration - Real-time Data Synchronization
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5Z5ieEbAcfQX0kxGSn9ldGXhzvAwx_8M",
+            authDomain: "chat-294cc.firebaseapp.com",
+            databaseURL: "https://chat-294cc-default-rtdb.firebaseio.com",
+            projectId: "chat-294cc",
+            storageBucket: "chat-294cc.firebasestorage.app",
+            messagingSenderId: "913615304269",
+            appId: "1:913615304269:web:0274ffaccb8e6b678e4e04",
+            measurementId: "G-SJR9NDW86B"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Global Countdown Data Management
+        class GlobalCountdownManager {
+            constructor() {
+                this.countdownRef = database.ref('countdown');
+                this.setupRealtimeListener();
+            }
+
+            setupRealtimeListener() {
+                this.countdownRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        console.log('Received real-time countdown update:', data);
+                        this.updateLocalStorage(data);
+                        this.notifyCountdownUpdate(data);
+                    }
+                });
+            }
+
+            updateLocalStorage(data) {
+                try {
+                    localStorage.setItem('memeCoinCountdown', JSON.stringify(data));
+                } catch (error) {
+                    console.error('Failed to update localStorage:', error);
+                }
+            }
+
+            notifyCountdownUpdate(data) {
+                window.dispatchEvent(new CustomEvent('countdownUpdate', {
+                    detail: data
+                }));
+            }
+
+            async resetCountdown(minutes) {
+                try {
+                    const now = new Date();
+                    const newTargetDate = new Date(now.getTime() + minutes * 60 * 1000);
+                    
+                    const countdownData = {
+                        targetDate: newTargetDate.toISOString(),
+                        lastUpdate: new Date().toISOString(),
+                        resetBy: 'admin-panel',
+                        version: '2.0',
+                        activeUsers: 0
+                    };
+
+                    await this.countdownRef.set(countdownData);
+                    console.log('Countdown reset successfully:', countdownData);
+                    return true;
+                } catch (error) {
+                    console.error('Failed to reset countdown:', error);
+                    return false;
+                }
+            }
+        }
+
+        // User Connection Management
+        class UserConnectionManager {
+            constructor() {
+                this.connectionsRef = database.ref('connections');
+                this.userId = this.generateUserId();
+                this.setupConnection();
+            }
+
+            generateUserId() {
+                return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            setupConnection() {
+                const userRef = this.connectionsRef.child(this.userId);
+                
+                userRef.set({
+                    connected: true,
+                    lastSeen: new Date().toISOString(),
+                    userAgent: navigator.userAgent
+                });
+
+                userRef.onDisconnect().remove();
+
+                setInterval(() => {
+                    userRef.update({
+                        lastSeen: new Date().toISOString()
+                    });
+                }, 30000);
+            }
+
+            disconnect() {
+                this.connectionsRef.child(this.userId).remove();
+            }
+        }
+
+        // Global instances
+        window.globalCountdownManager = new GlobalCountdownManager();
+        window.userConnectionManager = new UserConnectionManager();
+
+        // Clean up when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (window.userConnectionManager) {
+                window.userConnectionManager.disconnect();
+            }
+        });
+
+        console.log('Firebase real-time countdown manager initialized');
+    </script>
+</head>
+<body>
+    <!-- Background decoration elements -->
+    <div class="bg-decoration pink" style="top: 2.5rem; left: 2.5rem; width: 5rem; height: 5rem;"></div>
+    <div class="bg-decoration blue" style="bottom: 5rem; right: 2.5rem; width: 8rem; height: 8rem;"></div>
+    <div class="bg-decoration yellow" style="top: 33%; right: 25%; width: 4rem; height: 4rem;"></div>
+    
+    <!-- Floating MEME text -->
+    <div class="floating-text purple animate-float" style="top: 5rem; right: 5rem; font-size: 3rem;">MEME</div>
+    <div class="floating-text green animate-float" style="bottom: 10rem; left: 5rem; font-size: 3.75rem; animation-delay: 1s;">TO THE MOON</div>
+    <div class="floating-text pink animate-float" style="top: 50%; left: 2.5rem; font-size: 2.5rem; animation-delay: 0.5s;">HODL</div>
+    
+    <!-- Main container -->
+    <div class="container">
+        <!-- Top title -->
+        <header class="header">
+            <h1 class="main-title">
+                MOON LAUNCH
+            </h1>
+            <p class="subtitle animate-pulse-fast">
+                🚀 Countdown to the next big meme coin! 🚀
+            </p>
+        </header>
+        
+
+        
+        <!-- Countdown main content -->
+        <main class="main-content">
+            <div class="countdown-container">
+                <!-- Decoration elements -->
+                <div class="decoration-element top-left">
+                    <i class="fa fa-diamond"></i>
+                </div>
+                <div class="decoration-element bottom-right">
+                    <i class="fa fa-rocket"></i>
+                </div>
+                
+                <h2 class="countdown-title">
+                    Time Until Launch
+                </h2>
+                <p class="countdown-subtitle">
+                    🌐 Global shared countdown - All players synchronized
+                    <span class="connection-indicator" id="syncStatus">🟢 Connected</span>
+                </p>
+                
+                <div id="countdown" class="countdown-grid">
+                    <!-- Minutes -->
+                    <div class="countdown-block purple">
+                        <div id="minutes" class="countdown-number">05</div>
+                        <div class="countdown-label">MINUTES</div>
+                    </div>
+                    
+                    <!-- Seconds -->
+                    <div class="countdown-block green">
+                        <div id="seconds" class="countdown-number">00</div>
+                        <div class="countdown-label">SECONDS</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Token transaction detection area -->
+        <section class="token-tracking-section">
+            <div class="token-tracking-panel">
+                <!-- Decoration elements -->
+                <div class="decoration-element top-left green">
+                    <i class="fa fa-bitcoin"></i>
+                </div>
+                <div class="decoration-element bottom-right yellow">
+                    <i class="fa fa-exchange"></i>
+                </div>
+                
+                <h2 class="panel-title">
+                    🚀 Solana Real-time Transaction Detector 🚀
+                </h2>
+                
+                <!-- Token address display -->
+                <div class="token-address-display">
+                    <div class="address-container">
+                        <label class="address-label">Current Detection Token</label>
+                        <div class="address-input-container">
+                            <input 
+                                type="text" 
+                                id="currentTokenAddress"
+                                placeholder="Token address configured in admin panel"
+                                class="address-input"
+                                readonly
+                            >
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Transaction detection status -->
+                <div class="tracking-stats-grid">
+                    <!-- Detection status -->
+                    <div class="stat-card blue">
+                        <div class="stat-icon">📡</div>
+                        <div class="stat-title">Detection Status</div>
+                        <div class="stat-value" id="detectionStatus">🔴 Waiting for admin panel to start</div>
+                    </div>
+                    
+                    <!-- Transaction count -->
+                    <div class="stat-card purple">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-title">Transaction Count</div>
+                        <div class="stat-value" id="totalTransactions">0</div>
+                    </div>
+                    
+                    <!-- Countdown adjustment -->
+                    <div class="stat-card pink">
+                        <div class="stat-icon">⏰</div>
+                        <div class="stat-title">Countdown Adjustment</div>
+                        <div class="stat-value" id="countdownAdjustment">+0 seconds</div>
+                    </div>
+                    
+                    <!-- RPC status -->
+                    <div class="stat-card yellow">
+                        <div class="stat-icon">🌐</div>
+                        <div class="stat-title">RPC Status</div>
+                        <div class="stat-value" id="rpcStatus">Not selected</div>
+                    </div>
+                </div>
+                
+                <!-- Transaction log -->
+                <div class="transaction-log">
+                    <h3 class="log-title">📝 Transaction Log</h3>
+                    <div class="log-content" id="transactionLog">
+                        <div class="log-placeholder">Waiting for transaction detection...</div>
+                    </div>
+                </div>
+                
+                <!-- Detailed transaction records table -->
+                <div class="transaction-table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">📊 Detailed Transaction Records</h3>
+                        <div class="table-info">
+                            <span class="record-count" id="recordCount">0 records</span>
+                            <div class="sync-indicator"></div>
+                            <span class="sync-status">Waiting for sync...</span>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Trader</th>
+                                    <th>Transaction Hash</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionTableBody">
+                                <tr>
+                                    <td colspan="5" class="no-records">No transaction records yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Left panel - Successful countdown increase addresses -->
+        <div class="fixed-panel left-panel">
+            <h3 class="panel-header">💰 Successful Countdown Increase Addresses</h3>
+            <ul class="address-list" id="successAddresses">
+                <li class="address-item">Waiting for large buys...</li>
+                <li class="address-item">Waiting for large buys...</li>
+                <li class="address-item">Waiting for large buys...</li>
+                <li class="address-item">Waiting for large buys...</li>
+                <li class="address-item">Waiting for large buys...</li>
+            </ul>
+        </div>
+        
+        <!-- Right top panel -->
+        <div class="fixed-panel right-top-panel">
+            <h3 class="panel-header">🔗 Wallet Connection</h3>
+            
+            <!-- Wallet connect button -->
+            <button id="walletConnectBtn" class="wallet-connect-btn">
+                <span>🔗 Connect Wallet</span>
+            </button>
+            
+            <!-- Wallet status display -->
+            <div class="wallet-status">
+                <span class="status-text" id="walletStatusText">Not connected</span>
+            </div>
+            
+            <!-- Holding reward countdown display -->
+            <div class="reward-countdown">
+                <div class="reward-title">🏆 Holding Reward Countdown</div>
+                <div class="reward-time" id="rewardCountdown">20:00</div>
+                <div class="reward-info">Snapshot every 3 minutes</div>
+                <div class="reward-sync">🌐 Global sync</div>
+            </div>
+            
+            <!-- Action buttons area -->
+            <div class="action-buttons">
+                <!-- Whitepaper button -->
+                <button class="action-btn green" id="whitepaperBtn">
+                    <span>📄 Whitepaper</span>
+                </button>
+                
+                <!-- Claim reward button -->
+                <button class="action-btn pink" id="claimRewardBtn">
+                    <span>🎁 Claim Reward</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Right bottom panel - Top 20 holders -->
+        <div class="fixed-panel right-bottom-panel">
+            <div class="panel-header-row">
+                <h3 class="panel-header">🏆 Top 20 Holders</h3>
+                <div class="refresh-info">
+                    <div class="refresh-count" id="refreshCount">10</div>
+                    <span class="refresh-text">seconds to refresh</span>
+                </div>
+            </div>
+            <ul class="holder-list" id="topHolders">
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+                <li class="holder-item">Querying on-chain in real-time...</li>
+            </ul>
+        </div>
+        
+        <!-- Information area -->
+        <section class="info-container">
+            <div class="info-box">
+                <h3 class="info-title">Why This Meme Coin?</h3>
+                <p class="info-text">
+                    Because why not? It's a meme coin, just like all the others, but 
+                    <span class="highlight-text">this one is going to the moon!</span>
+                </p>
+                <button class="cta-button" onclick="window.open('https://x.com/lisa45732298406?s=21', '_blank')">
+                    BUY NOW BEFORE IT'S TOO LATE!
+                </button>
+            </div>
+            
+            <!-- Social media sharing -->
+            <div class="social-section">
+                <p class="social-title">SHARE THE HYPE!</p>
+                <div class="social-links">
+                    <a href="https://x.com/lisa45732298406?s=21" target="_blank" class="social-link twitter">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="https://x.com/lisa45732298406?s=21" target="_blank" class="social-link facebook">
+                        <i class="fa fa-facebook"></i>
+                    </a>
+                    <a href="https://x.com/lisa45732298406?s=21" target="_blank" class="social-link instagram">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                    <a href="https://x.com/lisa45732298406?s=21" target="_blank" class="social-link telegram">
+                        <i class="fa fa-telegram"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Disclaimer: This is a meme website. Not financial advice. Don't actually invest your life savings.</p>
+            <p>🚀 To the moon and beyond! 🚀</p>
+        </footer>
+    </div>
+
+    <!-- Wallet Connection Modal -->
+    <div id="walletModal" class="wallet-modal">
+        <div class="wallet-modal-content">
+            <div class="wallet-modal-header">
+                <h3>Connect Wallet</h3>
+                <button class="wallet-modal-close" id="walletModalClose">&times;</button>
+            </div>
+            <div class="wallet-modal-body">
+                <div class="wallet-options">
+                    <button class="wallet-option" id="okxWalletBtn">
+                        <div class="wallet-icon">🟢</div>
+                        <div class="wallet-info">
+                            <div class="wallet-name">OKX Wallet</div>
+                            <div class="wallet-description">Connect with OKX Wallet</div>
+                        </div>
+                    </button>
+                    
+                    <button class="wallet-option" id="phantomWalletBtn">
+                        <div class="wallet-icon">👻</div>
+                        <div class="wallet-info">
+                            <div class="wallet-name">Phantom Wallet</div>
+                            <div class="wallet-description">Connect with Phantom Wallet</div>
+                        </div>
+                    </button>
+                    
+                    <button class="wallet-option" id="coinbaseWalletBtn">
+                        <div class="wallet-icon">🟡</div>
+                        <div class="wallet-info">
+                            <div class="wallet-name">Coinbase Wallet</div>
+                            <div class="wallet-description">Connect with Coinbase Wallet</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="js/modules/Utils.js"></script>
+    <script src="js/modules/CountdownManager.js"></script>
+    <script src="js/modules/TransactionTracker.js"></script>
+    <script src="js/modules/UIEffects.js"></script>
+    <script src="js/modules/BackendManager.js"></script>
+    <script src="js/modules/TokenHoldersManager.js"></script>
+    <script src="js/modules/WalletManager.js"></script>
+    <script src="js/modules/WhitepaperModal.js"></script>
+    <script src="js/modules/ClaimRewardModal.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地址数据管理器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .address-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .address-info {
+            flex: 1;
+        }
+        .address-text {
+            font-family: monospace;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .address-details {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        .action-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .action-btn:hover {
+            background: #0056b3;
+        }
+        .action-btn.danger {
+            background: #dc3545;
+        }
+        .action-btn.danger:hover {
+            background: #c82333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .firebase-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .firebase-status.connected {
+            background: #28a745;
+        }
+        .firebase-status.disconnected {
+            background: #dc3545;
+        }
+        .firebase-status.unknown {
+            background: #ffc107;
+        }
+        
+        .data-section, .sync-section, .list-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        
+        .data-section h3, .sync-section h3, .list-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #495057;
+            font-size: 1.1em;
+        }
+        
+        .holder-item {
+            background: #e3f2fd;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196f3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .holder-info {
+            flex: 1;
+        }
+        
+        .holder-rank {
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+        
+        .holder-address {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #333;
+        }
+        
+        .holder-balance {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 地址数据管理器</h1>
+        <p>管理成功地址和持仓地址的数据</p>
+
+        <!-- Firebase 连接状态 -->
+        <div class="section">
+            <h2>🌐 Firebase 连接状态</h2>
+            <div id="firebaseStatus" class="status info">
+                <span class="firebase-status unknown"></span>
+                正在检查连接状态...
+            </div>
+            <button class="action-btn" onclick="checkFirebaseConnection()">检查连接</button>
+        </div>
+
+        <!-- 成功地址数据 -->
+        <div class="section">
+            <h2>💰 成功地址数据（大额买入地址）</h2>
+            <div class="data-section">
+                <h3>💾 本地存储</h3>
+                <div id="successLocalData" class="status info">
+                    正在加载本地数据...
+                </div>
+                <button class="action-btn" onclick="loadSuccessLocalData()">刷新本地数据</button>
+                <button class="action-btn danger" onclick="clearSuccessLocalData()">清空本地数据</button>
+            </div>
+            <div class="data-section">
+                <h3>🔥 Firebase 数据库</h3>
+                <div id="successFirebaseData" class="status info">
+                    正在加载 Firebase 数据...
+                </div>
+                <button class="action-btn" onclick="loadSuccessFirebaseData()">刷新 Firebase 数据</button>
+                <button class="action-btn danger" onclick="clearSuccessFirebaseData()">清空 Firebase 数据</button>
+            </div>
+        </div>
+
+        <!-- 持仓地址数据 -->
+        <div class="section">
+            <h2>🏆 持仓地址数据（Top 20 持有者）</h2>
+            <div class="data-section">
+                <h3>💾 本地存储</h3>
+                <div id="holdersLocalData" class="status info">
+                    正在加载本地数据...
+                </div>
+                <button class="action-btn" onclick="loadHoldersLocalData()">刷新本地数据</button>
+                <button class="action-btn danger" onclick="clearHoldersLocalData()">清空本地数据</button>
+            </div>
+            <div class="data-section">
+                <h3>🔥 Firebase 数据库</h3>
+                <div id="holdersFirebaseData" class="status info">
+                    正在加载 Firebase 数据...
+                </div>
+                <button class="action-btn" onclick="loadHoldersFirebaseData()">刷新 Firebase 数据</button>
+                <button class="action-btn danger" onclick="clearHoldersFirebaseData()">清空 Firebase 数据</button>
+            </div>
+        </div>
+
+        <!-- 数据同步 -->
+        <div class="section">
+            <h2>🔄 数据同步</h2>
+            <div class="sync-section">
+                <h3>💰 成功地址同步</h3>
+                <button class="action-btn" onclick="syncSuccessLocalToFirebase()">本地 → Firebase</button>
+                <button class="action-btn" onclick="syncSuccessFirebaseToLocal()">Firebase → 本地</button>
+            </div>
+            <div class="sync-section">
+                <h3>🏆 持仓地址同步</h3>
+                <button class="action-btn" onclick="syncHoldersLocalToFirebase()">本地 → Firebase</button>
+                <button class="action-btn" onclick="syncHoldersFirebaseToLocal()">Firebase → 本地</button>
+            </div>
+            <div class="sync-section">
+                <h3>🔄 全部同步</h3>
+                <button class="action-btn" onclick="syncAllData()">同步所有数据</button>
+            </div>
+        </div>
+
+        <!-- 地址列表 -->
+        <div class="section">
+            <h2>📋 地址列表</h2>
+            <div class="list-section">
+                <h3>💰 成功地址列表</h3>
+                <div id="successAddressList">
+                    正在加载成功地址列表...
+                </div>
+            </div>
+            <div class="list-section">
+                <h3>🏆 持仓地址列表</h3>
+                <div id="holdersAddressList">
+                    正在加载持仓地址列表...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5Z5ieEbAcfQX0kxGSn9ldGXhzvAwx_8M",
+            authDomain: "chat-294cc.firebaseapp.com",
+            databaseURL: "https://chat-294cc-default-rtdb.firebaseio.com",
+            projectId: "chat-294cc",
+            storageBucket: "chat-294cc.firebasestorage.app",
+            messagingSenderId: "913615304269",
+            appId: "1:913615304269:web:0274ffaccb8e6b678e4e04",
+            measurementId: "G-SJR9NDW86B"
+        };
+
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const successAddressesRef = database.ref('successAddresses');
+        const tokenHoldersRef = database.ref('tokenHolders');
+
+        let firebaseConnected = false;
+
+        // 检查 Firebase 连接
+        function checkFirebaseConnection() {
+            const statusDiv = document.getElementById('firebaseStatus');
+            const statusIndicator = statusDiv.querySelector('.firebase-status');
+            
+            statusDiv.innerHTML = '<span class="firebase-status unknown"></span> 正在检查连接...';
+            
+            // 测试连接
+            successAddressesRef.once('value')
+                .then(() => {
+                    firebaseConnected = true;
+                    statusDiv.innerHTML = '<span class="firebase-status connected"></span> Firebase 连接正常';
+                    statusDiv.className = 'status success';
+                })
+                .catch((error) => {
+                    firebaseConnected = false;
+                    statusDiv.innerHTML = '<span class="firebase-status disconnected"></span> Firebase 连接失败: ' + error.message;
+                    statusDiv.className = 'status error';
+                });
+        }
+
+        // 加载成功地址本地数据
+        function loadSuccessLocalData() {
+            const dataDiv = document.getElementById('successLocalData');
+            try {
+                const localData = localStorage.getItem('memeCoinSuccessAddresses');
+                if (localData) {
+                    const addresses = JSON.parse(localData);
+                    dataDiv.innerHTML = `
+                        <strong>本地数据:</strong> ${addresses.length} 个地址<br>
+                        <small>最后更新: ${new Date().toLocaleString()}</small>
+                    `;
+                    dataDiv.className = 'status success';
+                } else {
+                    dataDiv.innerHTML = '<strong>本地数据:</strong> 无数据';
+                    dataDiv.className = 'status info';
+                }
+            } catch (error) {
+                dataDiv.innerHTML = '<strong>本地数据:</strong> 加载失败 - ' + error.message;
+                dataDiv.className = 'status error';
+            }
+        }
+
+        // 加载持仓地址本地数据
+        function loadHoldersLocalData() {
+            const dataDiv = document.getElementById('holdersLocalData');
+            try {
+                const localData = localStorage.getItem('memeCoinTokenHolders');
+                if (localData) {
+                    const data = JSON.parse(localData);
+                    const holders = data.holders || [];
+                    dataDiv.innerHTML = `
+                        <strong>本地数据:</strong> ${holders.length} 个持有者<br>
+                        <small>最后更新: ${new Date(data.timestamp).toLocaleString()}</small>
+                    `;
+                    dataDiv.className = 'status success';
+                } else {
+                    dataDiv.innerHTML = '<strong>本地数据:</strong> 无数据';
+                    dataDiv.className = 'status info';
+                }
+            } catch (error) {
+                dataDiv.innerHTML = '<strong>本地数据:</strong> 加载失败 - ' + error.message;
+                dataDiv.className = 'status error';
+            }
+        }
+
+        // 加载成功地址 Firebase 数据
+        function loadSuccessFirebaseData() {
+            const dataDiv = document.getElementById('successFirebaseData');
+            dataDiv.innerHTML = '<strong>Firebase 数据:</strong> 正在加载...';
+            dataDiv.className = 'status info';
+
+            successAddressesRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const addresses = Array.isArray(data) ? data : [];
+                        dataDiv.innerHTML = `
+                            <strong>Firebase 数据:</strong> ${addresses.length} 个地址<br>
+                            <small>最后更新: ${new Date().toLocaleString()}</small>
+                        `;
+                        dataDiv.className = 'status success';
+                    } else {
+                        dataDiv.innerHTML = '<strong>Firebase 数据:</strong> 无数据';
+                        dataDiv.className = 'status info';
+                    }
+                })
+                .catch((error) => {
+                    dataDiv.innerHTML = '<strong>Firebase 数据:</strong> 加载失败 - ' + error.message;
+                    dataDiv.className = 'status error';
+                });
+        }
+
+        // 加载持仓地址 Firebase 数据
+        function loadHoldersFirebaseData() {
+            const dataDiv = document.getElementById('holdersFirebaseData');
+            dataDiv.innerHTML = '<strong>Firebase 数据:</strong> 正在加载...';
+            dataDiv.className = 'status info';
+
+            tokenHoldersRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const holders = data.holders || [];
+                        dataDiv.innerHTML = `
+                            <strong>Firebase 数据:</strong> ${holders.length} 个持有者<br>
+                            <small>最后更新: ${new Date(data.timestamp).toLocaleString()}</small>
+                        `;
+                        dataDiv.className = 'status success';
+                    } else {
+                        dataDiv.innerHTML = '<strong>Firebase 数据:</strong> 无数据';
+                        dataDiv.className = 'status info';
+                    }
+                })
+                .catch((error) => {
+                    dataDiv.innerHTML = '<strong>Firebase 数据:</strong> 加载失败 - ' + error.message;
+                    dataDiv.className = 'status error';
+                });
+        }
+
+        // 清空成功地址本地数据
+        function clearSuccessLocalData() {
+            if (confirm('确定要清空本地存储的成功地址数据吗？')) {
+                try {
+                    localStorage.removeItem('memeCoinSuccessAddresses');
+                    showStatus('成功地址本地数据已清空', 'success');
+                    loadSuccessLocalData();
+                    updateSuccessAddressList();
+                } catch (error) {
+                    showStatus('清空本地数据失败: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // 清空持仓地址本地数据
+        function clearHoldersLocalData() {
+            if (confirm('确定要清空本地存储的持仓地址数据吗？')) {
+                try {
+                    localStorage.removeItem('memeCoinTokenHolders');
+                    showStatus('持仓地址本地数据已清空', 'success');
+                    loadHoldersLocalData();
+                    updateHoldersAddressList();
+                } catch (error) {
+                    showStatus('清空本地数据失败: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // 清空成功地址 Firebase 数据
+        function clearSuccessFirebaseData() {
+            if (confirm('确定要清空 Firebase 数据库中的成功地址数据吗？此操作不可撤销！')) {
+                successAddressesRef.remove()
+                    .then(() => {
+                        showStatus('成功地址 Firebase 数据已清空', 'success');
+                        loadSuccessFirebaseData();
+                        updateSuccessAddressList();
+                    })
+                    .catch((error) => {
+                        showStatus('清空 Firebase 数据失败: ' + error.message, 'error');
+                    });
+            }
+        }
+
+        // 清空持仓地址 Firebase 数据
+        function clearHoldersFirebaseData() {
+            if (confirm('确定要清空 Firebase 数据库中的持仓地址数据吗？此操作不可撤销！')) {
+                tokenHoldersRef.remove()
+                    .then(() => {
+                        showStatus('持仓地址 Firebase 数据已清空', 'success');
+                        loadHoldersFirebaseData();
+                        updateHoldersAddressList();
+                    })
+                    .catch((error) => {
+                        showStatus('清空 Firebase 数据失败: ' + error.message, 'error');
+                    });
+            }
+        }
+
+        // 同步成功地址本地到 Firebase
+        function syncSuccessLocalToFirebase() {
+            try {
+                const localData = localStorage.getItem('memeCoinSuccessAddresses');
+                if (localData) {
+                    const addresses = JSON.parse(localData);
+                    successAddressesRef.set(addresses)
+                        .then(() => {
+                            showStatus('成功地址本地数据已同步到 Firebase', 'success');
+                            loadSuccessFirebaseData();
+                        })
+                        .catch((error) => {
+                            showStatus('同步到 Firebase 失败: ' + error.message, 'error');
+                        });
+                } else {
+                    showStatus('本地没有成功地址数据可同步', 'info');
+                }
+            } catch (error) {
+                showStatus('同步失败: ' + error.message, 'error');
+            }
+        }
+
+        // 同步持仓地址本地到 Firebase
+        function syncHoldersLocalToFirebase() {
+            try {
+                const localData = localStorage.getItem('memeCoinTokenHolders');
+                if (localData) {
+                    const data = JSON.parse(localData);
+                    tokenHoldersRef.set(data)
+                        .then(() => {
+                            showStatus('持仓地址本地数据已同步到 Firebase', 'success');
+                            loadHoldersFirebaseData();
+                        })
+                        .catch((error) => {
+                            showStatus('同步到 Firebase 失败: ' + error.message, 'error');
+                        });
+                } else {
+                    showStatus('本地没有持仓地址数据可同步', 'info');
+                }
+            } catch (error) {
+                showStatus('同步失败: ' + error.message, 'error');
+            }
+        }
+
+        // 同步成功地址 Firebase 到本地
+        function syncSuccessFirebaseToLocal() {
+            successAddressesRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        localStorage.setItem('memeCoinSuccessAddresses', JSON.stringify(data));
+                        showStatus('成功地址 Firebase 数据已同步到本地', 'success');
+                        loadSuccessLocalData();
+                        updateSuccessAddressList();
+                    } else {
+                        showStatus('Firebase 没有成功地址数据可同步', 'info');
+                    }
+                })
+                .catch((error) => {
+                    showStatus('从 Firebase 同步失败: ' + error.message, 'error');
+                });
+        }
+
+        // 同步持仓地址 Firebase 到本地
+        function syncHoldersFirebaseToLocal() {
+            tokenHoldersRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        localStorage.setItem('memeCoinTokenHolders', JSON.stringify(data));
+                        showStatus('持仓地址 Firebase 数据已同步到本地', 'success');
+                        loadHoldersLocalData();
+                        updateHoldersAddressList();
+                    } else {
+                        showStatus('Firebase 没有持仓地址数据可同步', 'info');
+                    }
+                })
+                .catch((error) => {
+                    showStatus('从 Firebase 同步失败: ' + error.message, 'error');
+                });
+        }
+
+        // 同步所有数据
+        function syncAllData() {
+            showStatus('正在同步所有数据...', 'info');
+            
+            // 同步成功地址
+            syncSuccessLocalToFirebase();
+            setTimeout(() => {
+                syncSuccessFirebaseToLocal();
+            }, 500);
+            
+            // 同步持仓地址
+            setTimeout(() => {
+                syncHoldersLocalToFirebase();
+            }, 1000);
+            setTimeout(() => {
+                syncHoldersFirebaseToLocal();
+            }, 1500);
+        }
+
+        // 更新成功地址列表显示
+        function updateSuccessAddressList() {
+            const listDiv = document.getElementById('successAddressList');
+            try {
+                const localData = localStorage.getItem('memeCoinSuccessAddresses');
+                if (localData) {
+                    const addresses = JSON.parse(localData);
+                    if (addresses.length > 0) {
+                        const addressHtml = addresses.map((addr, index) => `
+                            <div class="address-item">
+                                <div class="address-info">
+                                    <div class="address-text">${addr.address}</div>
+                                    <div class="address-details">
+                                        数量: ${addr.amount} tokens | 
+                                        时间: ${addr.date} ${addr.time}
+                                    </div>
+                                </div>
+                                <button class="delete-btn" onclick="deleteSuccessAddress(${index})">删除</button>
+                            </div>
+                        `).join('');
+                        listDiv.innerHTML = addressHtml;
+                    } else {
+                        listDiv.innerHTML = '<div class="status info">没有成功地址数据</div>';
+                    }
+                } else {
+                    listDiv.innerHTML = '<div class="status info">没有成功地址数据</div>';
+                }
+            } catch (error) {
+                listDiv.innerHTML = '<div class="status error">加载成功地址列表失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 更新持仓地址列表显示
+        function updateHoldersAddressList() {
+            const listDiv = document.getElementById('holdersAddressList');
+            try {
+                const localData = localStorage.getItem('memeCoinTokenHolders');
+                if (localData) {
+                    const data = JSON.parse(localData);
+                    const holders = data.holders || [];
+                    if (holders.length > 0) {
+                        const addressHtml = holders.map((holder, index) => `
+                            <div class="holder-item">
+                                <div class="holder-info">
+                                    <div class="holder-rank">#${holder.rank}</div>
+                                    <div class="holder-address">${holder.address}</div>
+                                    <div class="holder-balance">${formatBalance(holder.balance)} tokens</div>
+                                </div>
+                                <button class="delete-btn" onclick="deleteHolder(${index})">删除</button>
+                            </div>
+                        `).join('');
+                        listDiv.innerHTML = addressHtml;
+                    } else {
+                        listDiv.innerHTML = '<div class="status info">没有持仓地址数据</div>';
+                    }
+                } else {
+                    listDiv.innerHTML = '<div class="status info">没有持仓地址数据</div>';
+                }
+            } catch (error) {
+                listDiv.innerHTML = '<div class="status error">加载持仓地址列表失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 格式化余额显示
+        function formatBalance(balance) {
+            if (balance >= 1000000) {
+                return (balance / 1000000).toFixed(2) + 'M';
+            } else if (balance >= 1000) {
+                return (balance / 1000).toFixed(2) + 'K';
+            } else {
+                return balance.toFixed(2);
+            }
+        }
+
+        // 删除单个成功地址
+        function deleteSuccessAddress(index) {
+            if (confirm('确定要删除这个成功地址吗？')) {
+                try {
+                    const localData = localStorage.getItem('memeCoinSuccessAddresses');
+                    if (localData) {
+                        const addresses = JSON.parse(localData);
+                        addresses.splice(index, 1);
+                        localStorage.setItem('memeCoinSuccessAddresses', JSON.stringify(addresses));
+                        
+                        // 同步到 Firebase
+                        successAddressesRef.set(addresses)
+                            .then(() => {
+                                showStatus('成功地址已删除并同步到 Firebase', 'success');
+                                updateSuccessAddressList();
+                                loadSuccessLocalData();
+                                loadSuccessFirebaseData();
+                            })
+                            .catch((error) => {
+                                showStatus('删除成功地址失败: ' + error.message, 'error');
+                            });
+                    }
+                } catch (error) {
+                    showStatus('删除成功地址失败: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // 删除单个持仓地址
+        function deleteHolder(index) {
+            if (confirm('确定要删除这个持仓地址吗？')) {
+                try {
+                    const localData = localStorage.getItem('memeCoinTokenHolders');
+                    if (localData) {
+                        const data = JSON.parse(localData);
+                        const holders = data.holders || [];
+                        holders.splice(index, 1);
+                        
+                        // 重新计算排名
+                        holders.forEach((holder, i) => {
+                            holder.rank = i + 1;
+                        });
+                        
+                        data.holders = holders;
+                        localStorage.setItem('memeCoinTokenHolders', JSON.stringify(data));
+                        
+                        // 同步到 Firebase
+                        tokenHoldersRef.set(data)
+                            .then(() => {
+                                showStatus('持仓地址已删除并同步到 Firebase', 'success');
+                                updateHoldersAddressList();
+                                loadHoldersLocalData();
+                                loadHoldersFirebaseData();
+                            })
+                            .catch((error) => {
+                                showStatus('删除持仓地址失败: ' + error.message, 'error');
+                            });
+                    }
+                } catch (error) {
+                    showStatus('删除持仓地址失败: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.position = 'fixed';
+            statusDiv.style.top = '20px';
+            statusDiv.style.right = '20px';
+            statusDiv.style.zIndex = '1000';
+            statusDiv.style.minWidth = '300px';
+            
+            document.body.appendChild(statusDiv);
+            
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 3000);
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            checkFirebaseConnection();
+            
+            // 加载成功地址数据
+            loadSuccessLocalData();
+            loadSuccessFirebaseData();
+            updateSuccessAddressList();
+            
+            // 加载持仓地址数据
+            loadHoldersLocalData();
+            loadHoldersFirebaseData();
+            updateHoldersAddressList();
+        });
+    </script>
+</body>
+</html> 

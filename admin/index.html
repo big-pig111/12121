@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Coin Admin Panel</title>
+    <meta name="description" content="Meme Coin Admin Management System">
+    <meta name="keywords" content="admin, management, meme coin, rpc">
+    
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="../admin.css">
+    
+    <!-- Font Awesome icons -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // Firebase Configuration - Real-time Data Synchronization
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5Z5ieEbAcfQX0kxGSn9ldGXhzvAwx_8M",
+            authDomain: "chat-294cc.firebaseapp.com",
+            databaseURL: "https://chat-294cc-default-rtdb.firebaseio.com",
+            projectId: "chat-294cc",
+            storageBucket: "chat-294cc.firebasestorage.app",
+            messagingSenderId: "913615304269",
+            appId: "1:913615304269:web:0274ffaccb8e6b678e4e04",
+            measurementId: "G-SJR9NDW86B"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Global Countdown Data Management
+        class GlobalCountdownManager {
+            constructor() {
+                this.countdownRef = database.ref('countdown');
+            }
+
+            async resetCountdown(minutes) {
+                try {
+                    const now = new Date();
+                    const newTargetDate = new Date(now.getTime() + minutes * 60 * 1000);
+                    
+                    const countdownData = {
+                        targetDate: newTargetDate.toISOString(),
+                        lastUpdate: new Date().toISOString(),
+                        resetBy: 'admin-panel',
+                        version: '2.0',
+                        activeUsers: 0
+                    };
+
+                    await this.countdownRef.set(countdownData);
+                    console.log('Countdown reset successfully:', countdownData);
+                    return true;
+                } catch (error) {
+                    console.error('Failed to reset countdown:', error);
+                    return false;
+                }
+            }
+        }
+
+        // Global instance
+        window.globalCountdownManager = new GlobalCountdownManager();
+        console.log('Firebase admin manager initialized');
+    </script>
+</head>
+<body>
+    <!-- Background decoration -->
+    <div class="bg-decoration"></div>
+    
+    <!-- Main container -->
+    <div class="admin-container">
+        <!-- Top navigation -->
+        <header class="admin-header">
+            <div class="header-content">
+                <h1 class="admin-title">
+                    <i class="fa fa-cog"></i>
+                    Meme Coin Admin Management System (Vercel Version)
+                </h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="saveAllBtn">
+                        <i class="fa fa-save"></i>
+                        Save All Config
+                    </button>
+                    <button class="btn btn-secondary" id="refreshBtn">
+                        <i class="fa fa-refresh"></i>
+                        Refresh Status
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="admin-main">
+            <!-- Configuration panels -->
+            <div class="config-panels">
+                <!-- Countdown configuration panel -->
+                <section class="config-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="fa fa-clock-o"></i>
+                            Countdown Configuration
+                        </h2>
+                        <div class="panel-status">
+                            <span class="status-dot" id="countdownStatusDot"></span>
+                            <span class="status-text" id="countdownStatusText">Not Set</span>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <div class="form-group">
+                            <label for="countdownMinutes">Countdown Minutes:</label>
+                            <input 
+                                type="number" 
+                                id="countdownMinutes" 
+                                value="5" 
+                                min="1" 
+                                max="60"
+                                class="form-input"
+                            >
+                            <div class="input-help">Set countdown minutes (1-60 minutes)</div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="btn btn-success" id="resetCountdownBtn">
+                                <i class="fa fa-refresh"></i>
+                                Reset Countdown
+                            </button>
+                            <button class="btn btn-info" id="saveCountdownBtn">
+                                <i class="fa fa-save"></i>
+                                Save Config
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- System status panel -->
+                <section class="config-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="fa fa-info-circle"></i>
+                            System Status
+                        </h2>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <div class="status-grid">
+                            <div class="status-item">
+                                <span class="status-label">Firebase Connection:</span>
+                                <span class="status-value" id="firebaseStatus">Checking...</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Current Countdown:</span>
+                                <span class="status-value" id="currentCountdown">--:--</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Online Users:</span>
+                                <span class="status-value" id="onlineUsers">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Log section -->
+        <section class="log-section">
+            <div class="log-header">
+                <h3>System Log</h3>
+                <button class="btn btn-small" id="clearLogBtn">Clear Log</button>
+            </div>
+            <div id="log" class="log-container"></div>
+        </section>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Confirm Action</h3>
+                <span class="modal-close" id="modalClose">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin management script -->
+    <script src="../admin.js"></script>
+    <script>
+        // Initialize after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Admin page loaded, initializing...');
+            
+            // Check if required DOM elements exist
+            const countdownMinutes = document.getElementById('countdownMinutes');
+            const resetCountdownBtn = document.getElementById('resetCountdownBtn');
+            
+            if (countdownMinutes && resetCountdownBtn) {
+                console.log('Required DOM elements found');
+                
+                // Bind reset countdown button event
+                resetCountdownBtn.addEventListener('click', function() {
+                    const minutes = parseInt(countdownMinutes.value) || 5;
+                    console.log('Resetting countdown to', minutes, 'minutes');
+                    
+                    if (window.globalCountdownManager) {
+                        window.globalCountdownManager.resetCountdown(minutes).then((success) => {
+                            if (success) {
+                                console.log('Countdown reset successfully');
+                                alert('Countdown has been reset to ' + minutes + ' minutes!');
+                            } else {
+                                console.error('Failed to reset countdown');
+                                alert('Failed to reset countdown, please check Firebase connection');
+                            }
+                        });
+                    } else {
+                        console.error('GlobalCountdownManager not found');
+                        alert('Firebase not initialized, please refresh the page and try again');
+                    }
+                });
+            } else {
+                console.error('Required DOM elements not found');
+            }
+        });
+    </script>
+</body>
+</html> 

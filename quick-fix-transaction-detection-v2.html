@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速修复交易检测 V2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .status-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .status-item.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .status-item.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .status-item.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        .action-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .action-btn:hover {
+            background: #0056b3;
+        }
+        .action-btn.success {
+            background: #28a745;
+        }
+        .action-btn.success:hover {
+            background: #218838;
+        }
+        .action-btn.danger {
+            background: #dc3545;
+        }
+        .action-btn.danger:hover {
+            background: #c82333;
+        }
+        .log-container {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #28a745);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .module-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .module-card.loaded {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .module-card.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 快速修复交易检测 V2</h1>
+        <p>改进版修复工具，包含更好的错误处理和模块验证</p>
+
+        <!-- 修复进度 -->
+        <div class="section">
+            <h2>📊 修复进度</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressText">准备开始修复...</div>
+        </div>
+
+        <!-- 模块状态 -->
+        <div class="section">
+            <h2>📦 模块状态</h2>
+            <div class="module-grid" id="moduleGrid">
+                正在检查模块状态...
+            </div>
+        </div>
+
+        <!-- 修复状态 -->
+        <div class="section">
+            <h2>🔧 修复状态</h2>
+            <div id="fixStatus">
+                等待开始修复...
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="section">
+            <h2>🎯 操作</h2>
+            <button class="action-btn success" onclick="startQuickFix()">🚀 开始快速修复</button>
+            <button class="action-btn" onclick="checkStatus()">🔍 检查状态</button>
+            <button class="action-btn" onclick="testModules()">🧪 测试模块</button>
+            <button class="action-btn danger" onclick="resetAll()">🔄 重置所有</button>
+        </div>
+
+        <!-- 实时日志 -->
+        <div class="section">
+            <h2>📝 修复日志</h2>
+            <div id="fixLogContainer" class="log-container">
+                等待修复日志...
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载必要的依赖 -->
+    <script src="https://unpkg.com/@solana/web3.js@1.87.6/lib/index.iife.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        let fixLog = [];
+        let currentStep = 0;
+        const totalSteps = 12;
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            fixLog.push(logEntry);
+            
+            const logContainer = document.getElementById('fixLogContainer');
+            logContainer.textContent = fixLog.join('\n');
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 更新进度
+        function updateProgress(step, message) {
+            currentStep = step;
+            const progress = (step / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${step}/${totalSteps}: ${message}`;
+        }
+
+        // 更新模块网格
+        function updateModuleGrid() {
+            const modules = [
+                'Utils', 'BackendManager', 'CountdownManager', 'TransactionTracker',
+                'UIEffects', 'TokenHoldersManager', 'WalletManager', 'WhitepaperModal',
+                'ClaimRewardModal', 'MemeCoinApp'
+            ];
+            
+            const gridDiv = document.getElementById('moduleGrid');
+            let gridHtml = '';
+            
+            modules.forEach(moduleName => {
+                const isLoaded = typeof window[moduleName] !== 'undefined';
+                const cardClass = isLoaded ? 'loaded' : 'error';
+                const status = isLoaded ? '✅' : '❌';
+                
+                gridHtml += `
+                    <div class="module-card ${cardClass}">
+                        <div style="font-weight: bold;">${status} ${moduleName}</div>
+                        <div>${isLoaded ? '已加载' : '未加载'}</div>
+                    </div>
+                `;
+            });
+            
+            gridDiv.innerHTML = gridHtml;
+        }
+
+        // 开始快速修复
+        async function startQuickFix() {
+            addLog('开始快速修复交易检测功能 V2...', 'info');
+            
+            try {
+                // 步骤1: 检查依赖
+                updateProgress(1, '检查依赖...');
+                await checkDependencies();
+                
+                // 步骤2: 清除现有模块
+                updateProgress(2, '清除现有模块...');
+                clearExistingModules();
+                
+                // 步骤3-10: 按顺序加载模块
+                const modules = [
+                    { name: 'Utils', path: 'js/modules/Utils.js' },
+                    { name: 'BackendManager', path: 'js/modules/BackendManager.js' },
+                    { name: 'CountdownManager', path: 'js/modules/CountdownManager.js' },
+                    { name: 'TransactionTracker', path: 'js/modules/TransactionTracker.js' },
+                    { name: 'UIEffects', path: 'js/modules/UIEffects.js' },
+                    { name: 'TokenHoldersManager', path: 'js/modules/TokenHoldersManager.js' },
+                    { name: 'WalletManager', path: 'js/modules/WalletManager.js' },
+                    { name: 'WhitepaperModal', path: 'js/modules/WhitepaperModal.js' },
+                    { name: 'ClaimRewardModal', path: 'js/modules/ClaimRewardModal.js' }
+                ];
+                
+                for (let i = 0; i < modules.length; i++) {
+                    const module = modules[i];
+                    updateProgress(3 + i, `加载模块: ${module.name}...`);
+                    await loadModule(module.name, module.path);
+                    updateModuleGrid(); // 实时更新模块状态
+                }
+                
+                // 步骤11: 加载主应用
+                updateProgress(11, '加载主应用...');
+                await loadModule('MemeCoinApp', 'js/app.js');
+                updateModuleGrid();
+                
+                // 步骤12: 初始化应用
+                updateProgress(12, '初始化应用...');
+                await initializeApplication();
+                
+                addLog('快速修复完成！', 'success');
+                checkStatus();
+                
+            } catch (error) {
+                addLog(`修复失败: ${error.message}`, 'error');
+                updateProgress(currentStep, `错误: ${error.message}`);
+            }
+        }
+
+        // 检查依赖
+        async function checkDependencies() {
+            addLog('检查依赖...', 'info');
+            
+            // 检查 Solana Web3
+            if (typeof solana === 'undefined') {
+                addLog('Solana Web3 未加载，尝试重新加载...', 'warning');
+                await loadScript('https://unpkg.com/@solana/web3.js@1.87.6/lib/index.iife.min.js');
+            } else {
+                addLog('Solana Web3 已加载', 'success');
+            }
+            
+            // 检查 Firebase
+            if (typeof firebase === 'undefined') {
+                addLog('Firebase 未加载，尝试重新加载...', 'warning');
+                await loadScript('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
+                await loadScript('https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js');
+            } else {
+                addLog('Firebase 已加载', 'success');
+            }
+        }
+
+        // 清除现有模块
+        function clearExistingModules() {
+            addLog('清除现有模块...', 'info');
+            
+            const modules = [
+                'Utils', 'BackendManager', 'CountdownManager', 'TransactionTracker',
+                'UIEffects', 'TokenHoldersManager', 'WalletManager', 'WhitepaperModal',
+                'ClaimRewardModal', 'MemeCoinApp'
+            ];
+            
+            modules.forEach(moduleName => {
+                if (window[moduleName]) {
+                    delete window[moduleName];
+                    addLog(`清除模块: ${moduleName}`, 'info');
+                }
+            });
+            
+            // 清除全局实例
+            delete window.backendManager;
+            delete window.transactionTracker;
+            delete window.memeCoinApp;
+            
+            addLog('模块清除完成', 'success');
+            updateModuleGrid();
+        }
+
+        // 加载模块
+        async function loadModule(moduleName, scriptPath) {
+            addLog(`加载模块: ${moduleName} (${scriptPath})`, 'info');
+            
+            try {
+                await loadScript(scriptPath);
+                
+                // 等待一小段时间确保脚本执行完成
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // 验证模块是否加载成功
+                if (typeof window[moduleName] !== 'undefined') {
+                    addLog(`模块 ${moduleName} 加载成功`, 'success');
+                    
+                    // 额外验证：检查类是否可以实例化
+                    try {
+                        if (moduleName !== 'Utils') { // Utils 是静态类，不需要实例化
+                            const testInstance = new window[moduleName]();
+                            addLog(`模块 ${moduleName} 实例化测试成功`, 'success');
+                        }
+                    } catch (error) {
+                        addLog(`模块 ${moduleName} 实例化测试失败: ${error.message}`, 'warning');
+                    }
+                } else {
+                    throw new Error(`模块 ${moduleName} 加载后未定义`);
+                }
+                
+            } catch (error) {
+                addLog(`模块 ${moduleName} 加载失败: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // 加载脚本
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    addLog(`脚本 ${src} 加载成功`, 'success');
+                    resolve();
+                };
+                script.onerror = () => {
+                    addLog(`脚本 ${src} 加载失败`, 'error');
+                    reject(new Error(`Failed to load ${src}`));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        // 初始化应用
+        async function initializeApplication() {
+            addLog('初始化应用...', 'info');
+            
+            if (typeof MemeCoinApp === 'undefined') {
+                throw new Error('MemeCoinApp 类未定义');
+            }
+            
+            try {
+                // 创建应用实例
+                window.memeCoinApp = new MemeCoinApp();
+                addLog('应用实例创建成功', 'success');
+                
+                // 等待初始化完成
+                let attempts = 0;
+                const maxAttempts = 50; // 最多等待5秒
+                
+                while (!window.memeCoinApp.isInitialized && attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (window.memeCoinApp.isInitialized) {
+                    addLog('应用初始化完成', 'success');
+                } else {
+                    addLog('应用初始化超时，但可能仍在进行中', 'warning');
+                }
+                
+                // 检查交易检测状态
+                const detectionConfig = localStorage.getItem('memeCoinDetection');
+                if (detectionConfig) {
+                    const config = JSON.parse(detectionConfig);
+                    if (config.isRunning) {
+                        addLog('检测配置已启用，正在启动交易检测...', 'info');
+                        
+                        // 手动启动交易检测
+                        if (window.memeCoinApp.modules.transaction) {
+                            try {
+                                await window.memeCoinApp.modules.transaction.connect(config.rpcUrl);
+                                await window.memeCoinApp.modules.transaction.startTracking(config.tokenAddress);
+                                addLog('交易检测启动成功！', 'success');
+                            } catch (error) {
+                                addLog(`交易检测启动失败: ${error.message}`, 'error');
+                            }
+                        } else {
+                            addLog('TransactionTracker 模块不可用', 'error');
+                        }
+                    } else {
+                        addLog('检测配置未启用', 'info');
+                    }
+                } else {
+                    addLog('未找到检测配置', 'info');
+                }
+                
+            } catch (error) {
+                addLog(`应用初始化失败: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // 测试模块
+        function testModules() {
+            addLog('测试所有模块...', 'info');
+            
+            const modules = [
+                'Utils', 'BackendManager', 'CountdownManager', 'TransactionTracker',
+                'UIEffects', 'TokenHoldersManager', 'WalletManager', 'WhitepaperModal',
+                'ClaimRewardModal', 'MemeCoinApp'
+            ];
+            
+            modules.forEach(moduleName => {
+                const isLoaded = typeof window[moduleName] !== 'undefined';
+                if (isLoaded) {
+                    addLog(`✅ ${moduleName} 已加载`, 'success');
+                } else {
+                    addLog(`❌ ${moduleName} 未加载`, 'error');
+                }
+            });
+            
+            updateModuleGrid();
+        }
+
+        // 检查状态
+        function checkStatus() {
+            addLog('检查当前状态...', 'info');
+            
+            const statusDiv = document.getElementById('fixStatus');
+            let statusHtml = '';
+            
+            // 检查模块加载状态
+            const modules = [
+                'Utils', 'BackendManager', 'CountdownManager', 'TransactionTracker',
+                'UIEffects', 'TokenHoldersManager', 'WalletManager', 'WhitepaperModal',
+                'ClaimRewardModal', 'MemeCoinApp'
+            ];
+            
+            let loadedCount = 0;
+            modules.forEach(moduleName => {
+                const isLoaded = typeof window[moduleName] !== 'undefined';
+                if (isLoaded) loadedCount++;
+                
+                const status = isLoaded ? 'success' : 'error';
+                const label = isLoaded ? '✅' : '❌';
+                
+                statusHtml += `
+                    <div class="status-item ${status}">
+                        <div class="status-label">${label} ${moduleName}</div>
+                        <div class="status-value">状态: ${isLoaded ? '已加载' : '未加载'}</div>
+                    </div>
+                `;
+            });
+            
+            // 检查应用状态
+            if (window.memeCoinApp) {
+                const isInitialized = window.memeCoinApp.isInitialized;
+                const status = isInitialized ? 'success' : 'warning';
+                const label = isInitialized ? '✅' : '⚠️';
+                
+                statusHtml += `
+                    <div class="status-item ${status}">
+                        <div class="status-label">${label} MemeCoinApp 实例</div>
+                        <div class="status-value">初始化状态: ${isInitialized ? '已初始化' : '未初始化'}</div>
+                        <div class="status-value">模块数量: ${Object.keys(window.memeCoinApp.modules || {}).length}</div>
+                    </div>
+                `;
+            }
+            
+            // 检查交易检测状态
+            const detectionConfig = localStorage.getItem('memeCoinDetection');
+            if (detectionConfig) {
+                const config = JSON.parse(detectionConfig);
+                const status = config.isRunning ? 'success' : 'warning';
+                const label = config.isRunning ? '✅' : '⚠️';
+                
+                statusHtml += `
+                    <div class="status-item ${status}">
+                        <div class="status-label">${label} 交易检测配置</div>
+                        <div class="status-value">运行状态: ${config.isRunning ? '运行中' : '已停止'}</div>
+                        <div class="status-value">RPC URL: ${config.rpcUrl || '未设置'}</div>
+                        <div class="status-value">Token Address: ${config.tokenAddress || '未设置'}</div>
+                    </div>
+                `;
+            }
+            
+            statusDiv.innerHTML = statusHtml;
+            addLog(`状态检查完成: ${loadedCount}/${modules.length} 个模块已加载`, 'info');
+            updateModuleGrid();
+        }
+
+        // 重置所有
+        function resetAll() {
+            if (confirm('确定要重置所有模块和应用吗？这将清除所有加载的模块。')) {
+                addLog('重置所有模块...', 'warning');
+                
+                // 清除所有模块
+                clearExistingModules();
+                
+                // 重置进度
+                updateProgress(0, '已重置');
+                
+                // 清除日志
+                fixLog = [];
+                document.getElementById('fixLogContainer').textContent = '日志已清空...';
+                
+                addLog('重置完成', 'info');
+            }
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', () => {
+            addLog('快速修复工具 V2 已启动', 'info');
+            updateProgress(0, '准备就绪');
+            updateModuleGrid();
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>领取调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .debug-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .connect-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .connect-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 领取调试页面</h1>
+    
+    <div class="debug-section">
+        <h2>钱包连接</h2>
+        <button class="connect-button" onclick="connectWallet()">连接钱包</button>
+        <div id="wallet-result" class="debug-result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>获奖地址检查</h2>
+        <button class="connect-button" onclick="checkWinnerAddress()">检查获奖地址</button>
+        <div id="winner-result" class="debug-result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>奖励数据检查</h2>
+        <button class="connect-button" onclick="checkRewardData()">检查奖励数据</button>
+        <div id="reward-result" class="debug-result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>匹配检查</h2>
+        <button class="connect-button" onclick="checkMatch()">检查匹配</button>
+        <div id="match-result" class="debug-result"></div>
+    </div>
+
+    <script>
+        let walletAddress = null;
+
+        // 连接钱包
+        async function connectWallet() {
+            const resultDiv = document.getElementById('wallet-result');
+            
+            try {
+                // 检查是否安装了 Phantom 钱包
+                if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+                    const response = await window.solana.connect();
+                    walletAddress = response.publicKey.toString();
+                    
+                    resultDiv.textContent = `✅ 钱包连接成功:
+✅ 钱包地址: ${walletAddress}
+✅ 钱包类型: Phantom`;
+                    resultDiv.className = 'debug-result success';
+                } else {
+                    resultDiv.textContent = `❌ Phantom 钱包未安装或未检测到
+请安装 Phantom 钱包扩展程序`;
+                    resultDiv.className = 'debug-result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ 钱包连接失败: ${error.message}`;
+                resultDiv.className = 'debug-result error';
+            }
+        }
+
+        // 检查获奖地址
+        function checkWinnerAddress() {
+            const resultDiv = document.getElementById('winner-result');
+            
+            try {
+                const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+                
+                if (rewardAddressData) {
+                    const rewardConfig = JSON.parse(rewardAddressData);
+                    
+                    resultDiv.textContent = `✅ 获奖地址配置:
+✅ 地址: ${rewardConfig.address}
+✅ 积分: ${rewardConfig.amount}
+✅ 设置状态: ${rewardConfig.isSet ? '已设置' : '未设置'}
+✅ 更新时间: ${rewardConfig.lastUpdate}`;
+                    resultDiv.className = 'debug-result success';
+                } else {
+                    resultDiv.textContent = `❌ 未找到获奖地址配置
+localStorage 中没有 mainCountdownRewardAddress 数据`;
+                    resultDiv.className = 'debug-result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ 检查获奖地址失败: ${error.message}`;
+                resultDiv.className = 'debug-result error';
+            }
+        }
+
+        // 检查奖励数据
+        function checkRewardData() {
+            const resultDiv = document.getElementById('reward-result');
+            
+            try {
+                const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+                
+                resultDiv.textContent = `✅ 奖励数据检查:
+✅ 总奖励数: ${mainCountdownRewards.length}
+✅ 已领取: ${mainCountdownRewards.filter(r => r.claimed).length}
+✅ 待领取: ${mainCountdownRewards.filter(r => !r.claimed).length}
+
+详细数据:
+${JSON.stringify(mainCountdownRewards.slice(0, 3), null, 2)}
+${mainCountdownRewards.length > 3 ? `... 还有 ${mainCountdownRewards.length - 3} 个奖励` : ''}`;
+                resultDiv.className = 'debug-result success';
+            } catch (error) {
+                resultDiv.textContent = `❌ 检查奖励数据失败: ${error.message}`;
+                resultDiv.className = 'debug-result error';
+            }
+        }
+
+        // 检查匹配
+        function checkMatch() {
+            const resultDiv = document.getElementById('match-result');
+            
+            if (!walletAddress) {
+                resultDiv.textContent = `⚠️ 请先连接钱包`;
+                resultDiv.className = 'debug-result warning';
+                return;
+            }
+            
+            try {
+                const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+                
+                if (!rewardAddressData) {
+                    resultDiv.textContent = `❌ 未找到获奖地址配置`;
+                    resultDiv.className = 'debug-result error';
+                    return;
+                }
+                
+                const rewardConfig = JSON.parse(rewardAddressData);
+                const isMatch = rewardConfig.address === walletAddress;
+                
+                resultDiv.textContent = `🔍 匹配检查结果:
+✅ 当前钱包: ${walletAddress}
+✅ 获奖地址: ${rewardConfig.address}
+✅ 地址匹配: ${isMatch ? '✅ 匹配' : '❌ 不匹配'}
+✅ 设置状态: ${rewardConfig.isSet ? '已设置' : '未设置'}
+
+${isMatch ? '🎉 恭喜！您的钱包地址与获奖地址匹配！' : '⚠️ 您的钱包地址与获奖地址不匹配，请检查钱包地址。'}`;
+                resultDiv.className = isMatch ? 'debug-result success' : 'debug-result error';
+            } catch (error) {
+                resultDiv.textContent = `❌ 检查匹配失败: ${error.message}`;
+                resultDiv.className = 'debug-result error';
+            }
+        }
+
+        // 页面加载时自动检查
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('领取调试页面已加载');
+            checkWinnerAddress();
+            checkRewardData();
+        });
+    </script>
+</body>
+</html> 

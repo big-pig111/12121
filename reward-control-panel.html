@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奖励控制面板 - 100,000积分管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .control-panel {
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .status-display {
+            background: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid #3498db;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎁 奖励控制面板</h1>
+            <p>管理100,000积分奖励和获奖地址设置</p>
+        </div>
+
+        <div class="control-panel">
+            <!-- Firebase 连接状态 -->
+            <div class="section">
+                <h2>🔗 Firebase 连接状态</h2>
+                <div id="firebaseStatus" class="status-display">
+                    <div class="status-item">
+                        <span>连接状态:</span>
+                        <span id="connectionStatus">检查中...</span>
+                    </div>
+                </div>
+                <button class="btn" onclick="checkFirebaseConnection()">🔄 重新检查连接</button>
+            </div>
+
+            <!-- 获奖地址设置 -->
+            <div class="section">
+                <h2>🏆 获奖地址设置</h2>
+                <div class="form-group">
+                    <label for="winnerAddress">获奖钱包地址:</label>
+                    <input type="text" id="winnerAddress" placeholder="输入Solana钱包地址" maxlength="44">
+                </div>
+                <div class="form-group">
+                    <label for="rewardAmount">奖励积分数量:</label>
+                    <input type="number" id="rewardAmount" value="100000" min="1" max="1000000">
+                </div>
+                <button class="btn btn-success" onclick="setWinnerAddress()">✅ 设置获奖地址</button>
+                <button class="btn btn-danger" onclick="clearWinnerAddress()">❌ 清除获奖地址</button>
+                <button class="btn" onclick="getCurrentWinnerAddress()">📋 查看当前设置</button>
+            </div>
+
+            <!-- 奖励状态监控 -->
+            <div class="section">
+                <h2>📊 奖励状态监控</h2>
+                <div id="rewardStatus" class="status-display">
+                    <div class="status-item">
+                        <span>当前获奖地址:</span>
+                        <span id="currentWinnerAddress">未设置</span>
+                    </div>
+                    <div class="status-item">
+                        <span>奖励积分:</span>
+                        <span id="currentRewardAmount">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span>设置状态:</span>
+                        <span id="rewardSetStatus">未设置</span>
+                    </div>
+                </div>
+                <button class="btn" onclick="refreshRewardStatus()">🔄 刷新状态</button>
+            </div>
+
+            <!-- 操作日志 -->
+            <div class="section">
+                <h2>📋 操作日志</h2>
+                <div id="operationLog" class="status-display" style="max-height: 200px; overflow-y: auto;">
+                    <p>等待操作...</p>
+                </div>
+                <button class="btn" onclick="clearLog()">🗑️ 清除日志</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <!-- BackendManager -->
+    <script src="js/modules/BackendManager.js"></script>
+    
+    <!-- Reward Control Panel -->
+    <script src="reward-control.js"></script>
+    
+    <script>
+
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // 初始化奖励控制面板
+                await window.rewardControlPanel.init();
+                
+                // 检查连接状态
+                const connectionStatus = await window.rewardControlPanel.checkFirebaseConnection();
+                updateConnectionStatus(connectionStatus);
+                
+                // 刷新奖励状态
+                refreshRewardStatus();
+                
+                // 监听操作日志事件
+                document.addEventListener('rewardControlLog', function(e) {
+                    addLogEntry(e.detail);
+                });
+                
+            } catch (error) {
+                console.error('初始化失败:', error);
+                showAlert('系统初始化失败: ' + error.message, 'error');
+            }
+        });
+
+
+
+        async function checkFirebaseConnection() {
+            try {
+                const connectionStatus = await window.rewardControlPanel.checkFirebaseConnection();
+                updateConnectionStatus(connectionStatus);
+            } catch (error) {
+                console.error('检查连接失败:', error);
+                showAlert('检查连接失败: ' + error.message, 'error');
+            }
+        }
+
+        function updateConnectionStatus(status) {
+            const connectionStatus = document.getElementById('connectionStatus');
+            if (status.connected) {
+                connectionStatus.textContent = '✅ 已连接';
+            } else {
+                connectionStatus.textContent = '❌ ' + status.message;
+            }
+        }
+
+        async function setWinnerAddress() {
+            const address = document.getElementById('winnerAddress').value.trim();
+            const amount = parseInt(document.getElementById('rewardAmount').value);
+
+            if (!address) {
+                showAlert('请输入获奖钱包地址', 'error');
+                return;
+            }
+
+            try {
+                await window.rewardControlPanel.setWinnerAddress(address, amount);
+                showAlert(`获奖地址设置成功: ${address}`, 'success');
+                refreshRewardStatus();
+            } catch (error) {
+                showAlert('设置获奖地址失败: ' + error.message, 'error');
+            }
+        }
+
+        async function clearWinnerAddress() {
+            if (confirm('确定要清除获奖地址吗？这将禁用100,000积分奖励。')) {
+                try {
+                    await window.rewardControlPanel.clearWinnerAddress();
+                    showAlert('获奖地址已清除', 'success');
+                    refreshRewardStatus();
+                } catch (error) {
+                    showAlert('清除获奖地址失败: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function getCurrentWinnerAddress() {
+            try {
+                const rewardData = window.rewardControlPanel.getCurrentWinnerAddress();
+                if (rewardData && rewardData.address) {
+                    document.getElementById('winnerAddress').value = rewardData.address;
+                    document.getElementById('rewardAmount').value = rewardData.amount || 100000;
+                    showAlert(`当前获奖地址: ${rewardData.address}`, 'success');
+                } else {
+                    showAlert('当前未设置获奖地址', 'warning');
+                }
+            } catch (error) {
+                showAlert('获取获奖地址失败: ' + error.message, 'error');
+            }
+        }
+
+        function refreshRewardStatus() {
+            try {
+                const rewardData = window.rewardControlPanel.getCurrentWinnerAddress();
+                
+                if (rewardData && rewardData.address) {
+                    document.getElementById('currentWinnerAddress').textContent = rewardData.address;
+                    document.getElementById('currentRewardAmount').textContent = rewardData.amount || 100000;
+                    document.getElementById('rewardSetStatus').textContent = '✅ 已设置';
+                } else {
+                    document.getElementById('currentWinnerAddress').textContent = '未设置';
+                    document.getElementById('currentRewardAmount').textContent = '0';
+                    document.getElementById('rewardSetStatus').textContent = '❌ 未设置';
+                }
+            } catch (error) {
+                console.error('刷新奖励状态失败:', error);
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('operationLog').innerHTML = '<p>日志已清除</p>';
+        }
+
+        function addLogEntry(logEntry) {
+            const logContainer = document.getElementById('operationLog');
+            const entry = document.createElement('div');
+            entry.style.marginBottom = '5px';
+            entry.style.padding = '5px';
+            entry.style.borderRadius = '3px';
+            
+            switch (logEntry.type) {
+                case 'error':
+                    entry.style.backgroundColor = '#f8d7da';
+                    entry.style.color = '#721c24';
+                    break;
+                case 'success':
+                    entry.style.backgroundColor = '#d4edda';
+                    entry.style.color = '#155724';
+                    break;
+                case 'warning':
+                    entry.style.backgroundColor = '#fff3cd';
+                    entry.style.color = '#856404';
+                    break;
+                default:
+                    entry.style.backgroundColor = '#d1ecf1';
+                    entry.style.color = '#0c5460';
+            }
+            
+            entry.textContent = `[${logEntry.timestamp}] ${logEntry.message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.control-panel');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+
+    </script>
+</body>
+</html> 

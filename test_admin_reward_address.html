@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Reward Address Control Test</title>
+    <meta name="description" content="Test page for admin reward address control functionality">
+    
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="admin.css">
+    
+    <!-- Font Awesome icons -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5Z5ieEbAcfQX0kxGSn9ldGXhzvAwx_8M",
+            authDomain: "chat-294cc.firebaseapp.com",
+            databaseURL: "https://chat-294cc-default-rtdb.firebaseio.com",
+            projectId: "chat-294cc",
+            storageBucket: "chat-294cc.firebasestorage.app",
+            messagingSenderId: "913615304269",
+            appId: "1:913615304269:web:0274ffaccb8e6b678e4e04",
+            measurementId: "G-SJR9NDW86B"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        console.log('Firebase initialized for test page');
+    </script>
+</head>
+<body>
+    <!-- Background Decoration -->
+    <div class="bg-decoration"></div>
+    
+    <!-- Main Container -->
+    <div class="admin-container">
+        <!-- Top Navigation -->
+        <header class="admin-header">
+            <div class="header-content">
+                <h1 class="admin-title">
+                    <i class="fa fa-crown"></i>
+                    Admin Reward Address Control Test
+                </h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="testRewardAddressControl()">
+                        <i class="fa fa-play"></i>
+                        Test Functionality
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearTestData()">
+                        <i class="fa fa-trash"></i>
+                        Clear Test Data
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <!-- Test Configuration Panel -->
+            <section class="config-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fa fa-flask"></i>
+                        Reward Address Control Test
+                    </h2>
+                    <div class="panel-status">
+                        <span class="status-dot" id="testStatusDot"></span>
+                        <span class="status-text" id="testStatusText">Ready</span>
+                    </div>
+                </div>
+                
+                <div class="panel-content">
+                    <div class="form-group">
+                        <label for="testRewardAddress">Test Reward Address:</label>
+                        <input 
+                            type="text" 
+                            id="testRewardAddress" 
+                            placeholder="Enter Solana wallet address for testing"
+                            class="form-input"
+                            value="4XYHLvEArhPbA7HoZEzbun4UUHypAihfjKzmfJnY9Fw3"
+                        >
+                        <div class="input-help">Enter a Solana wallet address to test the reward control functionality</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testRewardAmount">Test Reward Amount (Points):</label>
+                        <input 
+                            type="number" 
+                            id="testRewardAmount" 
+                            value="100000"
+                            min="1"
+                            class="form-input"
+                        >
+                        <div class="input-help">Amount of points to reward (default: 100,000)</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="testRewardDescription">Test Reward Description:</label>
+                        <textarea 
+                            id="testRewardDescription" 
+                            placeholder="Description for this test reward"
+                            class="form-textarea"
+                            rows="2"
+                        >Test Main Countdown Winner Reward</textarea>
+                        <div class="input-help">Description displayed in the reward system</div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="validateTestAddress()">
+                            <i class="fa fa-check"></i>
+                            Validate Address
+                        </button>
+                        <button class="btn btn-warning" onclick="createTestReward()">
+                            <i class="fa fa-plus"></i>
+                            Create Test Reward
+                        </button>
+                        <button class="btn btn-info" onclick="checkTestReward()">
+                            <i class="fa fa-search"></i>
+                            Check Reward Status
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Test Results Panel -->
+            <section class="config-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fa fa-list"></i>
+                        Test Results
+                    </h2>
+                </div>
+                
+                <div class="panel-content">
+                    <div class="status-display" id="testResultsDisplay">
+                        <span class="status-item">
+                            <i class="fa fa-info-circle"></i>
+                            Test Status: <span id="testResultsStatus">Ready to test</span>
+                        </span>
+                        <span class="status-item">
+                            <i class="fa fa-clock-o"></i>
+                            Last Test: <span id="lastTestTime">Never</span>
+                        </span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Test Log:</label>
+                        <div class="log-content" id="testLog" style="max-height: 300px; overflow-y: auto; background: var(--bg-secondary); padding: 1rem; border-radius: var(--border-radius);">
+                            <div class="log-entry info">
+                                <span class="log-time">[System]</span>
+                                <span class="log-message">Test page loaded and ready</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer Information -->
+        <footer class="admin-footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Admin Reward Address Control Test</p>
+                <p>Test the reward address control functionality</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- External Scripts -->
+    <script src="js/modules/BackendManager.js"></script>
+    <script>
+        // Test Application
+        class TestApp {
+            constructor() {
+                this.backendManager = null;
+                this.init();
+            }
+
+            init() {
+                try {
+                    this.backendManager = new BackendManager();
+                    this.log('BackendManager initialized successfully', 'success');
+                    this.updateStatus('Ready', 'connected');
+                } catch (error) {
+                    this.log('Failed to initialize BackendManager: ' + error.message, 'error');
+                    this.updateStatus('Error', 'disconnected');
+                }
+            }
+
+            log(message, type = 'info') {
+                const logContent = document.getElementById('testLog');
+                if (logContent) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const logEntry = document.createElement('div');
+                    logEntry.className = `log-entry ${type}`;
+                    logEntry.innerHTML = `
+                        <span class="log-time">[${timestamp}]</span>
+                        <span class="log-message">${message}</span>
+                    `;
+                    logContent.appendChild(logEntry);
+                    logContent.scrollTop = logContent.scrollHeight;
+                }
+            }
+
+            updateStatus(status, type) {
+                const statusDot = document.getElementById('testStatusDot');
+                const statusText = document.getElementById('testStatusText');
+                
+                if (statusDot) {
+                    statusDot.className = `status-dot ${type}`;
+                }
+                
+                if (statusText) {
+                    statusText.textContent = status;
+                }
+            }
+
+            async validateAddress(address) {
+                if (!address) {
+                    this.log('No address provided for validation', 'error');
+                    return false;
+                }
+
+                // Basic Solana address validation
+                const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+                if (!solanaAddressRegex.test(address)) {
+                    this.log('Invalid Solana address format', 'error');
+                    return false;
+                }
+
+                this.log('Address format is valid: ' + address, 'success');
+                return true;
+            }
+
+            async createReward(address, amount, description) {
+                try {
+                    if (!this.backendManager || !this.backendManager.firebaseEnabled) {
+                        this.log('BackendManager not available', 'error');
+                        return false;
+                    }
+
+                    // Create reward data
+                    const rewardData = {
+                        id: `test_reward_${Date.now()}`,
+                        type: 'main-countdown',
+                        round: 1,
+                        amount: amount,
+                        winner: address,
+                        transactionAmount: 0,
+                        timestamp: Date.now(),
+                        claimed: false,
+                        createdAt: new Date().toISOString(),
+                        snapshotId: `test_snapshot_${Date.now()}`,
+                        evidence: {
+                            address: address,
+                            transactionSignature: 'test_set',
+                            transactionAmount: 0,
+                            transactionType: 'test_reward'
+                        },
+                        rewardDetails: {
+                            rewardType: 'main_countdown_winner',
+                            eligibilityCriteria: 'test_set_reward',
+                            winnerDeterminationTime: new Date().toISOString(),
+                            description: description
+                        },
+                        status: {
+                            created: true,
+                            claimed: false,
+                            claimedAt: null,
+                            claimTransactionHash: null,
+                            setBy: 'test_page'
+                        }
+                    };
+
+                    // Save to Firebase
+                    const rewardRef = this.backendManager.firebaseRefs.mainCountdownRewards;
+                    if (rewardRef) {
+                        await rewardRef.push(rewardData);
+                        this.log(`Test reward created successfully: ${address} (${amount.toLocaleString()} points)`, 'success');
+                        return true;
+                    } else {
+                        this.log('Firebase reward reference not available', 'error');
+                        return false;
+                    }
+                } catch (error) {
+                    this.log('Error creating test reward: ' + error.message, 'error');
+                    return false;
+                }
+            }
+
+            async checkRewardStatus(address) {
+                try {
+                    if (!this.backendManager || !this.backendManager.firebaseEnabled) {
+                        this.log('BackendManager not available', 'error');
+                        return;
+                    }
+
+                    const rewardRef = this.backendManager.firebaseRefs.mainCountdownRewards;
+                    if (rewardRef) {
+                        const snapshot = await rewardRef.orderByChild('winner').equalTo(address).once('value');
+                        const rewards = snapshot.val();
+                        
+                        if (rewards) {
+                            const rewardIds = Object.keys(rewards);
+                            const unclaimedRewards = rewardIds.filter(id => !rewards[id].claimed);
+                            
+                            this.log(`Found ${rewardIds.length} rewards for address ${address}`, 'info');
+                            this.log(`Unclaimed rewards: ${unclaimedRewards.length}`, 'info');
+                            
+                            if (unclaimedRewards.length > 0) {
+                                this.log('Reward is available to claim', 'success');
+                            } else {
+                                this.log('All rewards have been claimed', 'warning');
+                            }
+                        } else {
+                            this.log('No rewards found for this address', 'warning');
+                        }
+                    }
+                } catch (error) {
+                    this.log('Error checking reward status: ' + error.message, 'error');
+                }
+            }
+
+            async clearTestData() {
+                try {
+                    if (!this.backendManager || !this.backendManager.firebaseEnabled) {
+                        this.log('BackendManager not available', 'error');
+                        return;
+                    }
+
+                    const rewardRef = this.backendManager.firebaseRefs.mainCountdownRewards;
+                    if (rewardRef) {
+                        await rewardRef.remove();
+                        this.log('Test data cleared successfully', 'warning');
+                    }
+                } catch (error) {
+                    this.log('Error clearing test data: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Global test app instance
+        let testApp;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            testApp = new TestApp();
+        });
+
+        // Test functions
+        async function validateTestAddress() {
+            const address = document.getElementById('testRewardAddress').value.trim();
+            if (testApp) {
+                await testApp.validateAddress(address);
+            }
+        }
+
+        async function createTestReward() {
+            const address = document.getElementById('testRewardAddress').value.trim();
+            const amount = parseInt(document.getElementById('testRewardAmount').value) || 100000;
+            const description = document.getElementById('testRewardDescription').value.trim() || 'Test Main Countdown Winner Reward';
+
+            if (testApp) {
+                const success = await testApp.createReward(address, amount, description);
+                if (success) {
+                    document.getElementById('lastTestTime').textContent = new Date().toLocaleString();
+                }
+            }
+        }
+
+        async function checkTestReward() {
+            const address = document.getElementById('testRewardAddress').value.trim();
+            if (testApp) {
+                await testApp.checkRewardStatus(address);
+            }
+        }
+
+        async function clearTestData() {
+            if (testApp) {
+                await testApp.clearTestData();
+            }
+        }
+
+        async function testRewardAddressControl() {
+            testApp.log('Starting comprehensive test...', 'info');
+            
+            const address = document.getElementById('testRewardAddress').value.trim();
+            const amount = parseInt(document.getElementById('testRewardAmount').value) || 100000;
+            const description = document.getElementById('testRewardDescription').value.trim() || 'Test Main Countdown Winner Reward';
+
+            // Step 1: Validate address
+            testApp.log('Step 1: Validating address...', 'info');
+            const isValid = await testApp.validateAddress(address);
+            
+            if (isValid) {
+                // Step 2: Create test reward
+                testApp.log('Step 2: Creating test reward...', 'info');
+                const created = await testApp.createReward(address, amount, description);
+                
+                if (created) {
+                    // Step 3: Check reward status
+                    testApp.log('Step 3: Checking reward status...', 'info');
+                    await testApp.checkRewardStatus(address);
+                    
+                    testApp.log('Comprehensive test completed successfully!', 'success');
+                    document.getElementById('lastTestTime').textContent = new Date().toLocaleString();
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

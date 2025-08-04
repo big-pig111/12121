@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "countdown": {
+      ".read": true,
+      ".write": true
+    },
+    "connections": {
+      ".read": true,
+      ".write": true
+    },
+    "analytics": {
+      ".read": true,
+      ".write": true
+    },
+    "errors": {
+      ".read": true,
+      ".write": true
+    },
+    "performance": {
+      ".read": true,
+      ".write": true
+    },
+    "feedback": {
+      ".read": true,
+      ".write": true
+    }
+  }
+} 

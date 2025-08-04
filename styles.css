@@ -1,0 +1,1612 @@
+/* Basic style reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Import external resources */
+@import url('https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css');
+
+/* Custom colors and fonts */
+:root {
+    --meme-yellow: #FFDD00;
+    --meme-pink: #FF2E63;
+    --meme-blue: #08D9D6;
+    --meme-purple: #9D4EDD;
+    --meme-green: #4CAF50;
+}
+
+/* Custom fonts */
+@font-face {
+    font-family: 'MemeFont';
+    src: local('Comic Sans MS'), local('Comic Neue'), cursive;
+}
+
+/* Basic styles */
+body {
+    font-family: 'MemeFont', 'Comic Sans MS', 'Comic Neue', cursive;
+    background-color: #111827;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Container styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    position: relative;
+    z-index: 10;
+    /* Make space for fixed panels */
+    margin-left: 18rem;
+    margin-right: 18rem;
+}
+
+/* Header styles */
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.subtitle {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: white;
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Main content area */
+.main-content {
+    margin: 3rem 0;
+}
+
+/* Animation definitions */
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0); 
+    }
+    50% { 
+        transform: translateY(-10px); 
+    }
+}
+
+@keyframes spin-slow {
+    from { 
+        transform: rotate(0deg); 
+    }
+    to { 
+        transform: rotate(360deg); 
+    }
+}
+
+/* Custom utility classes */
+.text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.text-shadow-meme {
+    text-shadow: 3px 3px 0px #000;
+}
+
+.border-meme {
+    border: 4px solid #000;
+    border-radius: 12px;
+}
+
+.rotate-random {
+    transform: rotate(-2deg);
+}
+
+.rotate-random-reverse {
+    transform: rotate(2deg);
+}
+
+.glow {
+    box-shadow: 0 0 15px rgba(255, 221, 0, 0.7);
+}
+
+/* Animation classes */
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+    animation: spin-slow 8s linear infinite;
+}
+
+.animate-pulse-fast {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Pulse animation definition */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Background decoration elements */
+.bg-decoration {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.4;
+}
+
+.bg-decoration.pink {
+    background-color: var(--meme-pink);
+}
+
+.bg-decoration.blue {
+    background-color: var(--meme-blue);
+}
+
+.bg-decoration.yellow {
+    background-color: var(--meme-yellow);
+}
+
+/* Floating text */
+.floating-text {
+    position: absolute;
+    font-weight: bold;
+    opacity: 0.2;
+}
+
+.floating-text.purple {
+    color: var(--meme-purple);
+}
+
+.floating-text.green {
+    color: var(--meme-green);
+}
+
+.floating-text.pink {
+    color: var(--meme-pink);
+}
+
+/* Main title */
+.main-title {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: bold;
+    color: var(--meme-yellow);
+    text-shadow: 3px 3px 0px #000;
+    transition: transform 0.3s ease;
+}
+
+.main-title:hover {
+    transform: scale(1.05);
+}
+
+/* Countdown container */
+.countdown-container {
+    max-width: 64rem;
+    margin: 3rem auto;
+    border: 4px solid #000;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #374151, #111827);
+    padding: 2rem;
+    position: relative;
+}
+
+/* Countdown title */
+.countdown-title {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    color: var(--meme-pink);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* Countdown subtitle */
+.countdown-subtitle {
+    text-align: center;
+    color: var(--meme-yellow);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.connection-indicator {
+    margin-left: 0.5rem;
+    color: #4ade80;
+}
+
+/* Countdown grid */
+.countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 32rem;
+    margin: 0 auto;
+}
+
+/* Countdown block */
+.countdown-block {
+    padding: 1rem;
+    text-align: center;
+    border: 4px solid #000;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 221, 0, 0.7);
+}
+
+.countdown-block:hover {
+    transform: scale(1.05);
+}
+
+.countdown-block.yellow {
+    background-color: var(--meme-yellow);
+    color: black;
+}
+
+.countdown-block.blue {
+    background-color: var(--meme-blue);
+    color: black;
+}
+
+.countdown-block.purple {
+    background-color: var(--meme-purple);
+    color: white;
+}
+
+.countdown-block.green {
+    background-color: var(--meme-green);
+    color: black;
+}
+
+.countdown-number {
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: bold;
+}
+
+.countdown-label {
+    font-weight: bold;
+}
+
+/* Decoration elements */
+.decoration-element {
+    position: absolute;
+    padding: 0.75rem;
+    border: 4px solid #000;
+    border-radius: 12px;
+}
+
+.decoration-element.top-left {
+    top: -1.5rem;
+    left: -1.5rem;
+    background-color: var(--meme-pink);
+    transform: rotate(-2deg);
+}
+
+.decoration-element.bottom-right {
+    bottom: -1.5rem;
+    right: -1.5rem;
+    background-color: var(--meme-blue);
+    transform: rotate(2deg);
+}
+
+.decoration-element.top-left.green {
+    background-color: var(--meme-green);
+}
+
+.decoration-element.bottom-right.yellow {
+    background-color: var(--meme-yellow);
+}
+
+.decoration-element i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.decoration-element.bottom-right.yellow i {
+    color: black;
+}
+
+
+
+/* Token transaction detection area */
+.token-tracking-section {
+    margin: 2rem auto;
+    max-width: 64rem;
+}
+
+.token-tracking-panel {
+    background-color: #374151;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transform: rotate(1deg);
+    position: relative;
+}
+
+/* Token address display */
+.token-address-display {
+    margin-bottom: 2rem;
+}
+
+.address-container {
+    background-color: #1f2937;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.address-label {
+    display: block;
+    color: var(--meme-yellow);
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+}
+
+.address-input-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.address-input {
+    flex: 1;
+    min-width: 16rem;
+    padding: 0.75rem;
+    background-color: #374151;
+    border: 2px solid #4b5563;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.address-input:focus {
+    outline: none;
+    border-color: var(--meme-yellow);
+}
+
+/* Transaction detection status grid */
+.tracking-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+    .tracking-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.stat-card {
+    padding: 1.5rem;
+    text-align: center;
+    border: 4px solid #000;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 221, 0, 0.7);
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+}
+
+.stat-card.blue {
+    background-color: var(--meme-blue);
+    color: black;
+}
+
+.stat-card.purple {
+    background-color: var(--meme-purple);
+    color: white;
+}
+
+.stat-card.pink {
+    background-color: var(--meme-pink);
+    color: black;
+}
+
+.stat-card.yellow {
+    background-color: var(--meme-yellow);
+    color: black;
+}
+
+.stat-icon {
+    font-size: 1.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.125rem;
+    font-weight: bold;
+}
+
+/* Transaction log */
+.transaction-log {
+    background-color: #1f2937;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 1rem;
+    height: 15rem;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.log-title {
+    color: var(--meme-yellow);
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+}
+
+.log-content {
+    font-size: 0.875rem;
+    color: #d1d5db;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background-color: #374151;
+    border-radius: 8px;
+    border: 1px solid #4b5563;
+}
+
+.log-placeholder {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.log-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #4b5563;
+    font-size: 0.8rem;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-time {
+    color: #9ca3af;
+    min-width: 80px;
+}
+
+.log-type {
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    min-width: 60px;
+    text-align: center;
+}
+
+.log-type.buy {
+    background-color: #10b981;
+    color: white;
+}
+
+.log-type.sell {
+    background-color: #ef4444;
+    color: white;
+}
+
+.log-type.transfer {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.log-type.unknown {
+    background-color: #6b7280;
+    color: white;
+}
+
+.log-amount {
+    color: #d1d5db;
+    font-weight: bold;
+    min-width: 60px;
+    text-align: right;
+}
+
+.log-trader {
+    color: #9ca3af;
+    min-width: 80px;
+    text-align: right;
+}
+
+/* Transaction table container */
+.transaction-table-container {
+    background-color: #1f2937;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+    height: 25rem; /* Fixed height instead of max-height */
+    display: flex;
+    flex-direction: column;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.table-title {
+    color: var(--meme-yellow);
+    font-weight: bold;
+}
+
+.table-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.record-count {
+    font-size: 0.75rem;
+    color: var(--meme-yellow);
+    font-weight: bold;
+}
+
+.sync-indicator {
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: #6b7280;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.sync-indicator.active {
+    background-color: #10b981;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.sync-status {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.transaction-table {
+    width: 100%;
+    font-size: 0.75rem;
+    border-collapse: collapse;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.transaction-table thead {
+    flex-shrink: 0;
+}
+
+.transaction-table thead tr {
+    color: var(--meme-blue);
+    border-bottom: 1px solid #4b5563;
+    background-color: #374151;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.transaction-table th {
+    text-align: left;
+    padding: 0.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+
+.transaction-table tbody {
+    flex: 1;
+    overflow-y: auto;
+    display: block;
+}
+
+.transaction-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.transaction-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #374151;
+}
+
+.no-records {
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+    padding: 1rem;
+}
+
+/* Transaction type badges */
+.tx-type {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.tx-type.buy {
+    background-color: #10b981;
+    color: white;
+}
+
+.tx-type.sell {
+    background-color: #ef4444;
+    color: white;
+}
+
+.tx-type.transfer {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.tx-type.unknown {
+    background-color: #6b7280;
+    color: white;
+}
+
+/* Clickable addresses and signatures */
+.trader-address,
+.tx-signature {
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-family: 'Courier New', monospace;
+}
+
+.trader-address:hover,
+.tx-signature:hover {
+    color: var(--meme-yellow);
+    text-decoration: underline;
+}
+
+.trader-address:active,
+.tx-signature:active {
+    color: #fbbf24;
+}
+
+/* Fixed panels */
+.fixed-panel {
+    position: fixed;
+    background-color: #374151;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.left-panel {
+    top: 8rem;
+    left: 0.5rem;
+    width: 17rem;
+}
+
+.right-top-panel {
+    top: 1rem;
+    right: 0.5rem;
+    width: 17rem;
+    max-height: 40vh;
+}
+
+.right-bottom-panel {
+    bottom: 1rem;
+    right: 0.5rem;
+    width: 17rem;
+    max-height: 45vh;
+}
+
+.panel-header {
+    color: var(--meme-yellow);
+    font-weight: bold;
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+}
+
+.panel-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.refresh-info {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.refresh-count {
+    color: var(--meme-pink);
+    font-weight: bold;
+    font-size: 0.75rem;
+}
+
+.refresh-text {
+    color: #9ca3af;
+    font-size: 0.75rem;
+}
+
+/* Address list */
+.address-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.address-item {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #374151;
+    transition: all 0.3s ease;
+}
+
+.address-item:last-child {
+    border-bottom: none;
+}
+
+.address-item.success {
+    color: var(--meme-green);
+    font-weight: bold;
+    font-style: normal;
+    background-color: rgba(16, 185, 129, 0.1);
+    padding: 0.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--meme-green);
+}
+
+.address-item.success:hover {
+    background-color: rgba(16, 185, 129, 0.2);
+    transform: translateX(5px);
+}
+
+.address-item .address-text {
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+
+.address-item .timestamp {
+    font-size: 0.6rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Wallet connection */
+.wallet-connect-btn {
+    width: 100%;
+    background-color: var(--meme-blue);
+    color: white;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border: 4px solid #000;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+}
+
+.wallet-connect-btn:hover {
+    background-color: #0891b2;
+}
+
+.wallet-status {
+    margin-bottom: 0.75rem;
+}
+
+.status-text {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: bold;
+}
+
+/* Reward countdown */
+.reward-countdown {
+    background-color: #1f2937;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.reward-title {
+    color: var(--meme-yellow);
+    font-weight: bold;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.reward-time {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--meme-pink);
+}
+
+.reward-info {
+    color: #d1d5db;
+    font-size: 0.75rem;
+}
+
+.reward-sync {
+    color: var(--meme-blue);
+    font-size: 0.75rem;
+}
+
+/* Action buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    width: 100%;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border: 4px solid #000;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.action-btn.green {
+    background-color: var(--meme-green);
+    color: white;
+}
+
+.action-btn.green:hover {
+    background-color: #45a049;
+}
+
+.action-btn.pink {
+    background-color: var(--meme-pink);
+    color: white;
+}
+
+.action-btn.pink:hover {
+    background-color: #e91e63;
+}
+
+/* Holder list */
+  .holder-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 300px;
+      overflow-y: auto;
+  }
+  
+  .holder-item {
+      padding: 0.5rem;
+      border-bottom: 1px solid #374151;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      color: #9ca3af;
+      font-size: 0.75rem;
+      font-style: normal;
+      margin-bottom: 0;
+  }
+  
+  .holder-item:hover {
+      background-color: rgba(16, 185, 129, 0.1);
+      transform: translateX(5px);
+  }
+  
+  .holder-item:last-child {
+      border-bottom: none;
+  }
+  
+  .holder-rank {
+      font-weight: bold;
+      font-size: 0.8rem;
+      min-width: 60px;
+  }
+  
+  .holder-address {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      word-break: break-all;
+  }
+  
+  .holder-balance {
+      font-weight: bold;
+      color: var(--meme-green);
+      font-size: 0.8rem;
+      min-width: 50px;
+      text-align: right;
+  }
+
+/* Information area */
+.info-container {
+    max-width: 48rem;
+    margin: 3rem auto;
+    text-align: center;
+}
+
+.info-box {
+    background-color: #374151;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transform: rotate(-2deg);
+}
+
+.info-title {
+    font-size: 1.5rem;
+    color: var(--meme-yellow);
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .info-title {
+        font-size: 1.875rem;
+    }
+}
+
+.info-text {
+    color: white;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+}
+
+.highlight-text {
+    color: var(--meme-pink);
+    font-weight: bold;
+}
+
+/* Button styles */
+.cta-button {
+    background-color: var(--meme-pink);
+    color: white;
+    font-weight: bold;
+    padding: 0.75rem 2rem;
+    border: 4px solid #000;
+    border-radius: 12px;
+    transform: rotate(0deg);
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+    cursor: pointer;
+}
+
+.cta-button:hover {
+    background-color: #e91e63;
+    transform: rotate(1deg);
+}
+
+/* Social media area */
+.social-section {
+    margin-top: 2.5rem;
+}
+
+.social-title {
+    color: white;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.social-link {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #000;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.social-link:hover {
+    transform: scale(1.1);
+}
+
+.social-link.twitter {
+    background-color: #1da1f2;
+}
+
+.social-link.twitter:hover {
+    background-color: #1a8cd8;
+}
+
+.social-link.facebook {
+    background-color: #1877f2;
+}
+
+.social-link.facebook:hover {
+    background-color: #166fe5;
+}
+
+.social-link.instagram {
+    background-color: #e4405f;
+}
+
+.social-link.instagram:hover {
+    background-color: #d6336c;
+}
+
+.social-link.telegram {
+    background-color: #374151;
+}
+
+.social-link.telegram:hover {
+    background-color: #4b5563;
+}
+
+.social-link i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+/* Footer */
+.footer {
+    margin-top: 5rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Countdown ended state - removed launch animation */
+
+/* Reward Claim Modal Styles */
+.reward-claim-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+.reward-claim-content {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    border: 2px solid var(--meme-pink);
+    border-radius: 20px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+}
+
+.reward-claim-header {
+    background: linear-gradient(135deg, var(--meme-pink), #ec4899);
+    padding: 20px;
+    border-radius: 18px 18px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reward-claim-header h2 {
+    color: white;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.reward-claim-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.reward-claim-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.reward-claim-body {
+    padding: 30px;
+    text-align: center;
+}
+
+.reward-claim-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: bounce 1s infinite;
+}
+
+.reward-claim-body h3 {
+    color: var(--meme-pink);
+    font-size: 1.8rem;
+    margin: 0 0 15px 0;
+    font-weight: bold;
+}
+
+.reward-claim-body p {
+    color: #d1d5db;
+    font-size: 1.1rem;
+    margin: 0 0 25px 0;
+    line-height: 1.5;
+}
+
+.reward-claim-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.reward-claim-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+
+.reward-claim-btn.primary {
+    background: linear-gradient(135deg, var(--meme-pink), #ec4899);
+    color: white;
+}
+
+.reward-claim-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(236, 72, 153, 0.3);
+}
+
+.reward-claim-btn.secondary {
+    background: linear-gradient(135deg, #374151, #4b5563);
+    color: white;
+}
+
+.reward-claim-btn.secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(75, 85, 99, 0.3);
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive design for modal */
+@media (max-width: 768px) {
+    .reward-claim-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .reward-claim-header {
+        padding: 15px;
+    }
+    
+    .reward-claim-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .reward-claim-body {
+        padding: 20px;
+    }
+    
+    .reward-claim-icon {
+        font-size: 3rem;
+    }
+    
+    .reward-claim-body h3 {
+        font-size: 1.5rem;
+    }
+    
+    .reward-claim-body p {
+        font-size: 1rem;
+    }
+    
+    .reward-claim-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .reward-claim-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 1400px) {
+    .container {
+        margin-left: 18rem;
+        margin-right: 18rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .container {
+        margin-left: 17rem;
+        margin-right: 17rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+    
+    .countdown-container {
+        padding: 1rem;
+        margin: 1.5rem auto;
+    }
+    
+    .info-box {
+        padding: 1rem;
+    }
+    
+    .social-links {
+        flex-wrap: wrap;
+    }
+    
+    .token-tracking-panel {
+        padding: 1rem;
+        transform: none;
+    }
+    
+    .tracking-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .fixed-panel {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .address-input-container {
+        flex-direction: column;
+    }
+    
+    .address-input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .large-transaction-notification {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+        width: calc(100% - 20px);
+    }
+}
+
+/* Large Transaction Notification Styles */
+.large-transaction-notification {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    z-index: 1000;
+    animation: slideInLeft 0.5s ease-out;
+    max-width: 400px;
+    border: 2px solid #fecaca;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    animation: pulse 1s infinite;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.notification-details {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    line-height: 1.3;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Wallet Modal Styles */
+.wallet-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.wallet-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.wallet-modal-content {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border: 4px solid #000;
+    border-radius: 20px;
+    padding: 0;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.wallet-modal-header {
+    background: linear-gradient(135deg, var(--meme-blue) 0%, #0891b2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #000;
+}
+
+.wallet-modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.wallet-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.wallet-modal-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.wallet-modal-body {
+    padding: 1.5rem;
+}
+
+.wallet-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.wallet-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    border: 3px solid #000;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    width: 100%;
+}
+
+.wallet-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    border-color: var(--meme-blue);
+}
+
+.wallet-option:active {
+    transform: translateY(0);
+}
+
+.wallet-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+    width: 40px;
+    text-align: center;
+}
+
+.wallet-info {
+    flex: 1;
+}
+
+.wallet-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: white;
+    margin-bottom: 0.25rem;
+}
+
+.wallet-description {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+
+
+/* Responsive design for wallet modal */
+@media (max-width: 768px) {
+    .wallet-modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .wallet-section {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .wallet-option {
+        padding: 0.75rem;
+    }
+    
+    .wallet-icon {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+        width: 30px;
+    }
+}

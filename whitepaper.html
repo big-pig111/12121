@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEME Token Game Whitepaper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            line-height: 1.6;
+            color: #fff;
+            background: #111827;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background decoration elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 80px;
+            height: 80px;
+            background: #FF2E63;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: spin 8s linear infinite;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 80px;
+            right: 40px;
+            width: 128px;
+            height: 128px;
+            background: #08D9D6;
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: spin 8s linear infinite;
+            z-index: -1;
+        }
+
+        /* Floating MEME text */
+        .floating-meme {
+            position: fixed;
+            font-size: 3rem;
+            font-weight: bold;
+            opacity: 0.2;
+            animation: float 3s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .floating-meme:nth-child(1) {
+            top: 80px;
+            right: 80px;
+            color: #9D4EDD;
+            transform: rotate(12deg);
+        }
+
+        .floating-meme:nth-child(2) {
+            bottom: 160px;
+            left: 80px;
+            color: #4CAF50;
+            transform: rotate(-6deg);
+            animation-delay: 1s;
+        }
+
+        .floating-meme:nth-child(3) {
+            top: 50%;
+            left: 40px;
+            color: #FF2E63;
+            transform: rotate(6deg);
+            animation-delay: 0.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(12deg); }
+            50% { transform: translateY(-10px) rotate(12deg); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .whitepaper-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 4px solid #000;
+            border-radius: 12px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 4px solid #FFDD00;
+        }
+
+        .header h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            color: #FFDD00;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0px #000;
+            transform: rotate(-2deg);
+        }
+
+        .header .subtitle {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            color: #fff;
+            font-style: italic;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .version-info {
+            background: #374151;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #FFDD00;
+            border: 4px solid #000;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 4px solid #000;
+            border-radius: 12px;
+            position: relative;
+            transform: rotate(-1deg);
+        }
+
+        .section:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        .section h2 {
+            color: #FF2E63;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin-bottom: 20px;
+            border-bottom: 4px solid #FF2E63;
+            padding-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .section h3 {
+            color: #08D9D6;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            margin: 25px 0 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .section p {
+            margin-bottom: 15px;
+            text-align: justify;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            background: #374151;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 12px;
+            border: 4px solid #000;
+            border-left: 4px solid #FFDD00;
+            position: relative;
+            transform: rotate(-1deg);
+            transition: all 0.3s ease;
+        }
+
+        .feature-list li:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow: 0 0 15px rgba(255, 221, 0, 0.7);
+        }
+
+        .feature-list li::before {
+            content: "🚀";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tech-item {
+            background: linear-gradient(135deg, #9D4EDD, #FF2E63);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 4px solid #000;
+            transform: rotate(-2deg);
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            transform: rotate(0deg) scale(1.05);
+            box-shadow: 0 0 15px rgba(157, 78, 221, 0.7);
+        }
+
+        .tech-item h4 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-mechanics {
+            background: linear-gradient(135deg, #FFDD00, #FF2E63);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 4px solid #000;
+            transform: rotate(2deg);
+        }
+
+        .game-mechanics h3 {
+            color: #000;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        .game-mechanics p {
+            color: #000;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .reward-system {
+            background: linear-gradient(135deg, #08D9D6, #4CAF50);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 4px solid #000;
+            transform: rotate(-2deg);
+        }
+
+        .reward-system h3 {
+            color: #000;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        .reward-system p {
+            color: #000;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .roadmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .roadmap-item {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 4px solid #FFDD00;
+            text-align: center;
+            transform: rotate(1deg);
+            transition: all 0.3s ease;
+        }
+
+        .roadmap-item:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow: 0 0 15px rgba(255, 221, 0, 0.7);
+        }
+
+        .roadmap-item h4 {
+            color: #FFDD00;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .roadmap-item ul {
+            text-align: left;
+            margin-top: 10px;
+            color: #fff;
+        }
+
+        .roadmap-item li {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #374151;
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #FF2E63, #9D4EDD);
+            color: white;
+            border: 4px solid #000;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            transform: rotate(-2deg);
+            z-index: 99999;
+        }
+
+        .close-btn:hover {
+            transform: rotate(0deg) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 46, 99, 0.5);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #FFDD00, #FF2E63);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #000;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .warning {
+            background: linear-gradient(135deg, #FFDD00, #FF2E63);
+            border: 4px solid #000;
+            color: #000;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            transform: rotate(-1deg);
+        }
+
+        .success {
+            background: linear-gradient(135deg, #4CAF50, #08D9D6);
+            border: 4px solid #000;
+            color: #000;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            transform: rotate(1deg);
+        }
+
+        .success strong, .warning strong {
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .success ul, .warning ul {
+            margin-top: 10px;
+            color: #000;
+        }
+
+        .success li, .warning li {
+            margin: 5px 0;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Decoration elements */
+        .section::before {
+            content: '🚀';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            font-size: 2rem;
+            background: #FF2E63;
+            padding: 5px;
+            border: 4px solid #000;
+            border-radius: 8px;
+            transform: rotate(-15deg);
+        }
+
+        .section:nth-child(even)::before {
+            content: '💎';
+            background: #08D9D6;
+            transform: rotate(15deg);
+        }
+
+        @media (max-width: 768px) {
+            .whitepaper-container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .section h2 {
+                font-size: 1.5rem;
+            }
+
+            .tech-stack {
+                grid-template-columns: 1fr;
+            }
+
+            .floating-meme {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating MEME text -->
+    <div class="floating-meme">MEME</div>
+    <div class="floating-meme">TO THE MOON</div>
+    <div class="floating-meme">HODL</div>
+    
+    <button class="close-btn" onclick="closeWhitepaper()">Close Whitepaper</button>
+    
+    <div class="whitepaper-container">
+        <div class="header">
+            <h1>🚀 MEME TO THE MOON Whitepaper 🚀</h1>
+            <p class="subtitle">Solana Blockchain-based MEME Token Game Ecosystem</p>
+        </div>
+
+        <div class="version-info">
+            <strong>🚀 Version:</strong>1.0.0 | <strong>📅 Release Date:</strong>2024 | <strong>🔄 Update Date:</strong>2024
+        </div>
+
+        <div class="section">
+            <h2>📋 Table of Contents</h2>
+            <ul class="feature-list">
+                <li>Project Overview</li>
+                <li>Game Mechanics</li>
+                <li>Reward System</li>
+                <li>Technical Architecture</li>
+                <li>Security Mechanisms</li>
+                <li>Development Roadmap</li>
+                <li>Risk Warnings</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Project Overview</h2>
+            <p>
+                <span class="highlight">MEME TO THE MOON</span> is a crazy MEME token game ecosystem built on the Solana blockchain,
+                designed to engage users in token trading and community building through gamification. The project combines DeFi, gamification, and social elements,
+                creating a unique digital asset experience.🚀💎
+            </p>
+            
+            <h3>Core Vision</h3>
+            <p>
+                Build a fair, transparent, and fun token gaming platform where every participant can learn blockchain knowledge through entertainment,
+                earn real rewards in games, and build value connections in the community. Our goal is: <strong>TO THE MOON! 🌙</strong>
+            </p>
+
+            <h3>Project Features</h3>
+            <ul class="feature-list">
+                <li><strong>🚀 Real-time Transaction Monitoring:</strong>24/7 monitoring of Solana on-chain transactions, ensuring real-time and accurate game data</li>
+                <li><strong>💎 Multi-wallet Support:</strong>Support for mainstream Solana wallets like Phantom, OKX, Coinbase</li>
+                <li><strong>🏆 Fair Reward Mechanism:</strong>Transparent reward distribution based on actual transaction data</li>
+                <li><strong>👥 Community-driven:</strong>User participation directly affects game development and reward distribution</li>
+                <li><strong>⚡ Advanced Technology:</strong>Adopting the latest blockchain technology to ensure security and scalability</li>
+                <li><strong>🎮 Gamified Experience:</strong>Let users enjoy trading fun through gamification</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🎮 Game Mechanics</h2>
+            
+            <div class="game-mechanics">
+                <h3>Core Gameplay</h3>
+                <p>
+                    The game revolves around <span class="highlight">MEME token</span> trading activities, where players earn points and rewards by holding tokens,
+                    participating in trading, and completing specific tasks. Let's <span class="highlight">HODL TO THE MOON! 🚀</span>
+                </p>
+            </div>
+
+            <h3>Game Modes</h3>
+            <ul class="feature-list">
+                <li><strong>🏆 Holding Competition:</strong>Ranking by token holdings, top 20 get rewards</li>
+                <li><strong>💎 Trading Competition:</strong>Largest single transaction gets special rewards</li>
+                <li><strong>⭐ Point System:</strong>Earn points through various ways, exchange for tokens</li>
+                <li><strong>🔄 Round Mechanism:</strong>Regular resets to ensure fair competition</li>
+                <li><strong>🎯 Real-time Monitoring:</strong>24/7 monitoring of Solana on-chain transaction data</li>
+                <li><strong>🏅 Leaderboards:</strong>Real-time updates of holding and trading rankings</li>
+            </ul>
+
+            <h3>Participation Methods</h3>
+            <ul class="feature-list">
+                <li>Connect Solana wallet (Phantom, OKX, Coinbase, etc.)</li>
+                <li>Buy and hold MEME tokens</li>
+                <li>Participate in trading activities</li>
+                <li>View real-time rankings and reward status</li>
+                <li>Claim earned rewards</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🏆 Reward System</h2>
+            
+            <div class="reward-system">
+                <h3>Reward Types</h3>
+                <p>
+                    The system provides multiple reward mechanisms to ensure users with different participation methods receive corresponding returns.
+                </p>
+            </div>
+
+            <h3>Reward Details</h3>
+            <ul class="feature-list">
+                <li><strong>🏆 Top 20 Holding Rewards:</strong>3000 points per round, distributed by holding ranking</li>
+                <li><strong>💎 Largest Transaction Rewards:</strong>2000 points per round, reward for largest single transaction</li>
+                <li><strong>⭐ Point Exchange:</strong>Points can be exchanged for MEME tokens, 1 point = 1 token</li>
+                <li><strong>🎁 Special Rewards:</strong>Additional rewards for community contributors and active users</li>
+                <li><strong>🚀 Extra Rewards:</strong>Additional rewards for users participating in multiple rounds</li>
+            </ul>
+
+            <h3>Point Earning Methods</h3>
+            <ul class="feature-list">
+                <li>🏆 Holding ranking rewards</li>
+                <li>💎 Trading competition rewards</li>
+                <li>👥 Community activity participation</li>
+                <li>🤝 Invite new users</li>
+                <li>📅 Daily check-in</li>
+                <li>🎯 Complete special tasks</li>
+            </ul>
+
+            <div class="success">
+                <strong>💡 Tip:</strong>The reward system is completely based on on-chain data, ensuring fairness and transparency.
+                All reward records can be verified on the Solana blockchain.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Technical Architecture</h2>
+            
+            <h3>Technology Stack</h3>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <h4>🚀 Blockchain</h4>
+                    <p>Solana</p>
+                    <p>High performance, low fees</p>
+                </div>
+                <div class="tech-item">
+                    <h4>💻 Frontend Technology</h4>
+                    <p>HTML5 + CSS3 + JavaScript</p>
+                    <p>Responsive design</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🔥 Backend Services</h4>
+                    <p>Firebase</p>
+                    <p>Real-time database</p>
+                </div>
+                <div class="tech-item">
+                    <h4>👛 Wallet Integration</h4>
+                    <p>Phantom/OKX/Coinbase</p>
+                    <p>Multi-wallet support</p>
+                </div>
+            </div>
+
+            <h3>System Architecture</h3>
+            <ul class="feature-list">
+                <li><strong>Frontend Layer:</strong>User interface, wallet connection, data display</li>
+                <li><strong>Business Layer:</strong>Game logic, reward calculation, user management</li>
+                <li><strong>Data Layer:</strong>Firebase real-time database, on-chain data</li>
+                <li><strong>Blockchain Layer:</strong>Solana network, smart contracts, transaction verification</li>
+            </ul>
+
+            <h3>Data Flow</h3>
+            <ol style="padding-left: 20px;">
+                <li>Monitor Solana on-chain MEME token transactions</li>
+                <li>Real-time update of holding data and transaction records</li>
+                <li>Calculate rankings and reward eligibility</li>
+                <li>Update user interface display</li>
+                <li>Process user reward claim requests</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>🔒 Security Mechanisms</h2>
+            
+            <h3>Security Guarantees</h3>
+            <ul class="feature-list">
+                <li><strong>On-chain Verification:</strong>All data based on Solana blockchain, immutable</li>
+                <li><strong>Wallet Security:</strong>User private keys stored locally, platform doesn't touch them</li>
+                <li><strong>Data Transparency:</strong>All transactions and reward records publicly verifiable</li>
+                <li><strong>Anti-cheat Mechanism:</strong>Multiple verifications ensure game fairness</li>
+                <li><strong>Regular Audits:</strong>Regular security audits of code and smart contracts</li>
+            </ul>
+
+            <div class="warning">
+                <strong>⚠️ Security Reminder:</strong>
+                Please ensure you download wallets from official channels, do not leak private keys or mnemonics.
+                The platform will never ask you for private key information.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🗺️ Development Roadmap</h2>
+            
+            <div class="roadmap">
+                <div class="roadmap-item">
+                    <h4>Phase 1</h4>
+                    <p><strong>Basic Features</strong></p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>Core game mechanics</li>
+                        <li>Multi-wallet support</li>
+                        <li>Basic reward system</li>
+                    </ul>
+                </div>
+                <div class="roadmap-item">
+                    <h4>Phase 2</h4>
+                    <p><strong>Feature Expansion</strong></p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>More game modes</li>
+                        <li>Social features</li>
+                        <li>Mobile adaptation</li>
+                    </ul>
+                </div>
+                <div class="roadmap-item">
+                    <h4>Phase 3</h4>
+                    <p><strong>Ecosystem Building</strong></p>
+                    <ul style="text-align: left; margin-top: 10px;">
+                        <li>DAO governance</li>
+                        <li>Cross-chain support</li>
+                        <li>NFT integration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Risk Warnings</h2>
+            
+            <div class="warning">
+                <h3>Investment Risks</h3>
+                <ul style="margin-top: 10px;">
+                    <li>Cryptocurrency prices are highly volatile, invest with caution</li>
+                    <li>Game rewards do not constitute investment advice</li>
+                    <li>Please fully understand related risks before participating</li>
+                </ul>
+            </div>
+
+            <h3>Technical Risks</h3>
+            <ul class="feature-list">
+                <li>Possible delays or failures in blockchain networks</li>
+                <li>Technical vulnerabilities in smart contracts</li>
+                <li>Wallet security issues</li>
+                <li>Regulatory policy change risks</li>
+            </ul>
+
+            <h3>Disclaimer</h3>
+            <p>
+                This whitepaper is for reference only and does not constitute investment advice. Users should bear their own investment risks,
+                and the platform is not responsible for any losses caused by participating in the game.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>📞 Contact Us</h2>
+            <p>
+                If you have any questions or suggestions about this project, please feel free to contact us through the following ways:
+            </p>
+            <ul class="feature-list">
+                <li><strong>Official Website:</strong>Current game platform</li>
+                <li><strong>Technical Support:</strong>Through platform feedback function</li>
+                <li><strong>Community Discussion:</strong>In-game community features</li>
+            </ul>
+        </div>
+
+        <div class="section" style="text-align: center; background: linear-gradient(135deg, #FFDD00, #FF2E63); color: black; border: 4px solid #000; transform: rotate(-2deg);">
+            <h2 style="color: black; border-bottom-color: black; text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);">🎉 Thank You for Your Participation</h2>
+            <p style="color: black; text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);">
+                Thank you for your support and trust in <span class="highlight">MEME TO THE MOON</span>. Let's build a better blockchain gaming ecosystem together!🚀💎
+            </p>
+            <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8; color: black; text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);">
+                © 2024 MEME TO THE MOON. All rights reserved. TO THE MOON! 🌙
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function closeWhitepaper() {
+            // Trigger custom event to notify parent window to close whitepaper
+            window.parent.postMessage({
+                type: 'closeWhitepaper',
+                data: {}
+            }, '*');
+            
+            // If in iframe, close iframe
+            if (window.parent !== window) {
+                window.parent.document.querySelector('iframe[src*="whitepaper.html"]')?.remove();
+            }
+        }
+
+        // Listen for ESC key to close
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeWhitepaper();
+            }
+        });
+
+        // Click background to close (if not in iframe)
+        document.addEventListener('click', function(event) {
+            if (event.target === document.body && window.parent === window) {
+                closeWhitepaper();
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Rewards - MEME TO THE MOON</title>
+    <script src="js/modules/BackendManager.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            line-height: 1.6;
+            color: #fff;
+            background: #111827;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background decoration elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
+            background: #FFDD00;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: spin 10s linear infinite;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 100px;
+            right: 60px;
+            width: 150px;
+            height: 150px;
+            background: #FF2E63;
+            border-radius: 50%;
+            opacity: 0.2;
+            animation: spin 12s linear infinite reverse;
+            z-index: -1;
+        }
+
+        /* Floating reward icons */
+        .floating-reward {
+            position: fixed;
+            font-size: 2.5rem;
+            opacity: 0.15;
+            animation: float 4s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .floating-reward:nth-child(1) {
+            top: 120px;
+            right: 120px;
+            color: #FFDD00;
+            transform: rotate(15deg);
+        }
+
+        .floating-reward:nth-child(2) {
+            bottom: 200px;
+            left: 100px;
+            color: #4CAF50;
+            transform: rotate(-10deg);
+            animation-delay: 1s;
+        }
+
+        .floating-reward:nth-child(3) {
+            top: 60%;
+            left: 60px;
+            color: #9D4EDD;
+            transform: rotate(8deg);
+            animation-delay: 0.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(15deg); }
+            50% { transform: translateY(-15px) rotate(15deg); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .claim-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 4px solid #000;
+            border-radius: 12px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 4px solid #FFDD00;
+        }
+
+        .header h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            color: #FFDD00;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0px #000;
+            transform: rotate(-1deg);
+        }
+
+        .header .subtitle {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            color: #fff;
+            font-style: italic;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .reward-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 4px solid #000;
+            border-radius: 12px;
+            position: relative;
+            transform: rotate(-0.5deg);
+        }
+
+        .reward-section:nth-child(even) {
+            transform: rotate(0.5deg);
+        }
+
+        .reward-section h2 {
+            color: #FF2E63;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            margin-bottom: 20px;
+            border-bottom: 4px solid #FF2E63;
+            padding-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .reward-section h3 {
+            color: #08D9D6;
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            margin: 20px 0 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .reward-info {
+            background: #374151;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 4px solid #000;
+            border-left: 4px solid #FFDD00;
+            position: relative;
+            transform: rotate(-1deg);
+        }
+
+        .reward-info.available {
+            border-left-color: #4CAF50;
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+        }
+
+        .reward-info.claimed {
+            border-left-color: #9CA3AF;
+            background: linear-gradient(135deg, #374151 0%, #374151 100%);
+            opacity: 0.7;
+        }
+
+        .reward-info h4 {
+            color: #FFDD00;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .reward-info.available h4 {
+            color: #4CAF50;
+        }
+
+        .reward-info.claimed h4 {
+            color: #9CA3AF;
+        }
+
+        .reward-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .detail-item {
+            background: #1f2937;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #000;
+            text-align: center;
+        }
+
+        .detail-item .label {
+            font-size: 0.9rem;
+            color: #9CA3AF;
+            margin-bottom: 5px;
+        }
+
+        .detail-item .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #FFDD00;
+        }
+
+        .claim-button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: 4px solid #000;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            transform: rotate(-2deg);
+            margin-top: 15px;
+        }
+
+        .claim-button:hover {
+            transform: rotate(0deg) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+            background: linear-gradient(135deg, #45a049, #4CAF50);
+        }
+
+        .claim-button:disabled {
+            background: linear-gradient(135deg, #9CA3AF, #6B7280);
+            cursor: not-allowed;
+            transform: rotate(0deg);
+            opacity: 0.6;
+        }
+
+        .claimed-badge {
+            background: linear-gradient(135deg, #9D4EDD, #7C3AED);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            border: 2px solid #000;
+        }
+
+        .total-rewards {
+            background: linear-gradient(135deg, #FFDD00, #FF2E63);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 4px solid #000;
+            transform: rotate(1deg);
+            text-align: center;
+        }
+
+        .total-rewards h3 {
+            color: #000;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+        }
+
+        .total-rewards .total-points {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #000;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
+            margin: 10px 0;
+        }
+
+        .wallet-section {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 4px solid #000;
+            text-align: center;
+        }
+
+        .wallet-status {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .wallet-status.connected {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .wallet-status.disconnected {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .connect-wallet-btn {
+            background: linear-gradient(135deg, #FF2E63, #9D4EDD);
+            color: white;
+            border: 4px solid #000;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            transform: rotate(-1deg);
+        }
+
+        .connect-wallet-btn:hover {
+            transform: rotate(0deg) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 46, 99, 0.5);
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #FF2E63, #9D4EDD);
+            color: white;
+            border: 4px solid #000;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            transform: rotate(-2deg);
+            z-index: 99999;
+        }
+
+        .close-btn:hover {
+            transform: rotate(0deg) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 46, 99, 0.5);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            border: 4px solid #000;
+            font-weight: bold;
+            z-index: 100000;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100%); }
+            to { transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Decoration elements */
+        .reward-section::before {
+            content: '🏆';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            font-size: 2rem;
+            background: #FFDD00;
+            padding: 5px;
+            border: 4px solid #000;
+            border-radius: 8px;
+            transform: rotate(-15deg);
+        }
+
+        .reward-section:nth-child(even)::before {
+            content: '💎';
+            background: #FF2E63;
+            transform: rotate(15deg);
+        }
+
+        @media (max-width: 768px) {
+            .claim-container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .reward-section h2 {
+                font-size: 1.5rem;
+            }
+
+            .reward-details {
+                grid-template-columns: 1fr;
+            }
+
+                    .floating-reward {
+            display: none;
+        }
+    }
+
+    /* Token Exchange Styles */
+    .exchange-info {
+        background: linear-gradient(135deg, #1f2937, #374151);
+        border: 4px solid #000;
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 20px;
+    }
+
+    .exchange-rate {
+        margin-bottom: 24px;
+    }
+
+    .rate-display {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        border: 3px solid #000;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        margin-top: 12px;
+    }
+
+    .rate-value {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 8px;
+    }
+
+    .rate-info {
+        display: block;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .exchange-calculator {
+        margin-bottom: 24px;
+    }
+
+    .calculator-input {
+        background: #374151;
+        border: 3px solid #000;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 12px;
+    }
+
+    .calculator-input label {
+        display: block;
+        color: #fff;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .calculator-input input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #000;
+        border-radius: 8px;
+        background: #1f2937;
+        color: #fff;
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+
+    .calculator-input input:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+    }
+
+    .exchange-preview {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        border: 2px solid #000;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .exchange-preview strong {
+        color: #FFDD00;
+        font-size: 1.1rem;
+    }
+
+    .exchange-actions {
+        text-align: center;
+    }
+
+    .exchange-button {
+        background: linear-gradient(135deg, #FF9800, #F57C00);
+        color: #fff;
+        border: 3px solid #000;
+        border-radius: 12px;
+        padding: 16px 32px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 16px;
+        min-width: 280px;
+    }
+
+    .exchange-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255, 152, 0, 0.4);
+    }
+
+    .exchange-button:disabled {
+        background: linear-gradient(135deg, #6B7280, #4B5563);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .exchange-status {
+        background: #374151;
+        border: 2px solid #000;
+        border-radius: 8px;
+        padding: 12px;
+        color: #9CA3AF;
+        font-size: 0.9rem;
+    }
+
+    .exchange-status.success {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: #fff;
+        border-color: #2E7D32;
+    }
+
+    .exchange-status.error {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        color: #fff;
+        border-color: #C62828;
+    }
+
+    .exchange-status.loading {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        color: #fff;
+        border-color: #1565C0;
+    }
+    </style>
+</head>
+<body>
+    <!-- Floating reward icons -->
+    <div class="floating-reward">🏆</div>
+    <div class="floating-reward">💎</div>
+    <div class="floating-reward">🎁</div>
+    
+    <button class="close-btn" onclick="closeClaimReward()">Close</button>
+    
+    <div class="claim-container">
+        <div class="header">
+            <h1>🎁 Claim Your Rewards 🎁</h1>
+            <p class="subtitle">Collect your hard-earned MEME tokens!</p>
+        </div>
+
+        <!-- Wallet Connection Section -->
+        <div class="wallet-section">
+            <h3>🔗 Wallet Connection</h3>
+            <div id="walletStatus" class="wallet-status disconnected">
+                Wallet Not Connected
+            </div>
+            <div id="walletAddress" style="margin: 10px 0; font-family: monospace; color: #9CA3AF;"></div>
+            <button id="connectWalletBtn" class="connect-wallet-btn" onclick="connectWallet()">
+                🔗 Connect Wallet
+            </button>
+        </div>
+
+        <!-- Total Rewards Summary -->
+        <div class="total-rewards">
+            <h3>🏆 Total Available Rewards</h3>
+            <div class="total-points" id="totalPoints">0</div>
+            <p style="color: #000; font-weight: bold;">Points Available for Claim</p>
+        </div>
+
+        <!-- Main Countdown Reward -->
+        <div class="reward-section">
+            <h2>🚀 Main Countdown Reward</h2>
+            <p style="margin-bottom: 20px; color: #fff;">
+                The last large buyer when the main countdown ends receives a massive reward!
+            </p>
+            
+            <div id="mainCountdownReward" class="reward-info">
+                <h4>🏆 Main Countdown Winner</h4>
+                <div class="reward-details">
+                    <div class="detail-item">
+                        <div class="label">Reward Amount</div>
+                        <div class="value" id="mainCountdownAmount">10,000 Points</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">Status</div>
+                        <div class="value" id="mainCountdownStatus">Not Available</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">Winner Address</div>
+                        <div class="value" id="mainCountdownWinner">-</div>
+                    </div>
+                </div>
+                <button id="claimMainCountdownBtn" class="claim-button" onclick="claimMainCountdown()" disabled>
+                    🏆 Claim Main Countdown Reward
+                </button>
+            </div>
+        </div>
+
+        <!-- Holding Reward -->
+        <div class="reward-section">
+            <h2>💎 Holding Reward</h2>
+            <p style="margin-bottom: 20px; color: #fff;">
+                Regular rewards for holding MEME tokens at snapshot intervals.
+            </p>
+            
+            <div id="holdingReward" class="reward-info">
+                <h4>💎 Holding Reward</h4>
+                <div class="reward-details">
+                    <div class="detail-item">
+                        <div class="label">Reward Amount</div>
+                        <div class="value" id="holdingAmount">3,000 Points</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">Status</div>
+                        <div class="value" id="holdingStatus">Not Available</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">Next Snapshot</div>
+                        <div class="value" id="nextSnapshot">-</div>
+                    </div>
+                </div>
+                <button id="claimHoldingBtn" class="claim-button" onclick="claimHolding()" disabled>
+                    💎 Claim Holding Reward
+                </button>
+            </div>
+        </div>
+
+        <!-- Reward History -->
+        <div class="reward-section">
+            <h2>📊 Reward History</h2>
+            <div id="rewardHistory">
+                <p style="text-align: center; color: #9CA3AF; font-style: italic;">
+                    No rewards claimed yet. Start playing to earn rewards!
+                </p>
+            </div>
+        </div>
+
+        <!-- Token Exchange Section -->
+        <div class="reward-section">
+            <h2>🪙 Token Exchange</h2>
+            <p style="margin-bottom: 20px; color: #fff;">
+                Exchange your points for MEME tokens at a 1:10 ratio using Firebase cloud functions.
+            </p>
+            
+            <div class="exchange-info">
+                <div class="exchange-rate">
+                    <h4>💱 Exchange Rate</h4>
+                    <div class="rate-display">
+                        <span class="rate-value">1 Point = 10 MEME Tokens</span>
+                        <span class="rate-info">Powered by Firebase Cloud Functions</span>
+                    </div>
+                </div>
+                
+                <div class="exchange-calculator">
+                    <h4>🧮 Exchange Calculator</h4>
+                    <div class="calculator-input">
+                        <div class="exchange-preview" id="exchangePreview">
+                            <span>Available Points: <strong id="availablePoints">0</strong></span>
+                            <span>You will receive: <strong id="tokenAmount">0</strong> MEME tokens</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="exchange-actions">
+                    <button id="exchangeBtn" class="exchange-button" onclick="exchangeTokens()" disabled>
+                        🪙 Exchange All Points for Tokens
+                    </button>
+                    <div class="exchange-status" id="exchangeStatus">
+                        <span>Connect wallet to exchange all available points</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="reward-section">
+            <h2>📋 How to Claim Rewards</h2>
+            <div style="background: #374151; padding: 20px; border-radius: 12px; border: 4px solid #000;">
+                <ol style="margin-left: 20px; color: #fff;">
+                    <li><strong>Connect your wallet</strong> - Use Phantom, OKX, or Coinbase wallet</li>
+                    <li><strong>Check eligibility</strong> - Verify you're eligible for the rewards</li>
+                    <li><strong>Click claim button</strong> - Claim your rewards with one click</li>
+                    <li><strong>Confirm transaction</strong> - Approve the transaction in your wallet</li>
+                    <li><strong>Receive tokens</strong> - Get your MEME tokens instantly!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let walletConnected = false;
+        let walletAddress = '';
+        let mainCountdownEligible = false;
+        let holdingEligible = false;
+        let totalPoints = 0;
+
+                // Initialize BackendManager with Firebase support
+        async function initializeBackendManager() {
+            if (!window.backendManager) {
+                // Ensure Firebase is loaded first
+                if (!window.firebase) {
+                    console.log('🔄 Loading Firebase SDK for BackendManager...');
+                    await loadFirebaseSDK();
+                }
+                
+                window.backendManager = new BackendManager();
+                window.backendManager.init();
+                console.log('✅ BackendManager initialized with Firebase support');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🎁 Claim reward page initializing...');
+            
+            // Add debug button for testing
+            addDebugButton();
+            
+            // Initialize BackendManager with Firebase support first
+            await initializeBackendManager();
+            
+            // Check wallet connection
+            await checkWalletConnection();
+            
+            // Load reward data only if wallet is connected
+            if (walletConnected && walletAddress) {
+                console.log('✅ Wallet connected, loading reward data...');
+                await loadRewardData();
+                updateDisplay();
+                
+                // Sync points balance from backend when wallet is connected (优先使用贪吃蛇游戏积分)
+                await syncPointsFromBackend();
+            } else {
+                console.log('❌ No wallet connected, skipping reward data load');
+                updateDisplay(); // Still update display to show "Not Available"
+            }
+        });
+
+        // Add debug button for testing
+        function addDebugButton() {
+            const debugBtn = document.createElement('button');
+            debugBtn.textContent = '🔍 Debug Info';
+            debugBtn.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: linear-gradient(135deg, #FF9800, #F57C00);
+                color: white;
+                border: 3px solid #000;
+                border-radius: 12px;
+                padding: 12px 20px;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+                z-index: 99999;
+                font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+            `;
+            debugBtn.onclick = showDebugInfo;
+            document.body.appendChild(debugBtn);
+        }
+
+        // Show debug information
+        function showDebugInfo() {
+            let rewardAddressData = null;
+            let dataSource = 'None';
+            
+            // Try to get from BackendManager first
+            if (window.backendManager) {
+                const bmRewardAddress = window.backendManager.getMainCountdownRewardAddress();
+                if (bmRewardAddress && bmRewardAddress.address) {
+                    rewardAddressData = JSON.stringify(bmRewardAddress);
+                    dataSource = 'BackendManager';
+                }
+            }
+            
+            // Fallback to localStorage
+            if (!rewardAddressData) {
+                rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+                if (rewardAddressData) {
+                    dataSource = 'localStorage';
+                }
+            }
+            
+            const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+            
+            let debugInfo = `🔍 DEBUG INFO\n\n`;
+            debugInfo += `Wallet Connected: ${walletConnected}\n`;
+            debugInfo += `Wallet Address: ${walletAddress || 'Not connected'}\n\n`;
+            debugInfo += `📊 Data Source: ${dataSource}\n\n`;
+            
+            if (rewardAddressData) {
+                const rewardConfig = JSON.parse(rewardAddressData);
+                debugInfo += `🏆 Winner Address: ${rewardConfig.address}\n`;
+                debugInfo += `💰 Reward Amount: ${rewardConfig.amount}\n`;
+                debugInfo += `✅ Is Set: ${rewardConfig.isSet}\n\n`;
+                
+                if (walletAddress) {
+                    const isMatch = rewardConfig.address === walletAddress;
+                    debugInfo += `🔍 Address Match: ${isMatch ? '✅ YES' : '❌ NO'}\n`;
+                }
+            } else {
+                debugInfo += `❌ No winner address configured\n\n`;
+            }
+            
+            debugInfo += `📊 Reward Records: ${mainCountdownRewards.length}\n`;
+            const userRewards = mainCountdownRewards.filter(r => r.winner === walletAddress);
+            debugInfo += `👤 Your Rewards: ${userRewards.length}\n`;
+            const unclaimedRewards = userRewards.filter(r => !r.claimed);
+            debugInfo += `🎁 Unclaimed: ${unclaimedRewards.length}\n\n`;
+            
+            // Add eligibility status
+            debugInfo += `🎯 ELIGIBILITY STATUS:\n`;
+            debugInfo += `mainCountdownEligible: ${mainCountdownEligible}\n`;
+            debugInfo += `mainCountdownEligibleCount: ${window.mainCountdownEligibleCount || 0}\n`;
+            debugInfo += `mainCountdownTotalPoints: ${window.mainCountdownTotalPoints || 0}\n`;
+            debugInfo += `mainCountdownClaimedPoints: ${window.mainCountdownClaimedPoints || 0}\n\n`;
+            
+            // Add BackendManager status
+            if (window.backendManager) {
+                const bmRewardAddress = window.backendManager.getMainCountdownRewardAddress();
+                debugInfo += `🔧 BACKEND MANAGER:\n`;
+                debugInfo += `Available: ✅\n`;
+                debugInfo += `Reward Address: ${bmRewardAddress ? 'Set' : 'Not set'}\n`;
+                if (bmRewardAddress) {
+                    debugInfo += `Address: ${bmRewardAddress.address}\n`;
+                    debugInfo += `Amount: ${bmRewardAddress.amount}\n`;
+                    debugInfo += `Is Set: ${bmRewardAddress.isSet}\n`;
+                }
+            } else {
+                debugInfo += `🔧 BACKEND MANAGER: ❌ Not available\n`;
+            }
+            
+            alert(debugInfo);
+        }
+
+        // Check wallet connection
+        async function checkWalletConnection() {
+            try {
+                // Check if Phantom wallet is available and connected
+                if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+                    const isConnected = window.solana.isConnected;
+                    if (isConnected) {
+                        walletConnected = true;
+                        walletAddress = window.solana.publicKey.toString();
+                        console.log('✅ Phantom wallet already connected:', walletAddress);
+                        await updateWalletDisplay();
+                        return;
+                    }
+                }
+
+                // Check if there's a saved connection in this page
+                const savedConnection = localStorage.getItem('walletConnection');
+                if (savedConnection) {
+                    const connection = JSON.parse(savedConnection);
+                    walletConnected = true;
+                    walletAddress = connection.address;
+                    console.log('✅ Using saved wallet connection:', walletAddress);
+                    await updateWalletDisplay();
+                    return;
+                }
+
+                console.log('No wallet connection found, waiting for connection...');
+            } catch (error) {
+                console.error('Error checking wallet connection:', error);
+            }
+        }
+
+
+
+        // Connect wallet
+        async function connectWallet() {
+            try {
+                if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+                    const response = await window.solana.connect();
+                    walletConnected = true;
+                    walletAddress = response.publicKey.toString();
+                    
+                    // Save connection to localStorage
+                    localStorage.setItem('walletConnection', JSON.stringify({
+                        address: walletAddress,
+                        connectedAt: new Date().toISOString()
+                    }));
+                    
+                    console.log('✅ Wallet connected successfully:', walletAddress);
+                    await updateWalletDisplay();
+                    
+                    // Reload reward data after wallet connection
+                    console.log('🔄 Reloading reward data after wallet connection...');
+                    await loadRewardData();
+                    updateDisplay();
+                    
+                    // Sync points from backend
+                    await syncPointsFromBackend();
+                } else {
+                    showNotification('Phantom wallet not found. Please install Phantom wallet extension.', 'error');
+                }
+            } catch (error) {
+                console.error('Failed to connect wallet:', error);
+                showNotification('Failed to connect wallet: ' + error.message, 'error');
+            }
+        }
+
+        // Load reward data from backend and localStorage
+        async function loadRewardData() {
+            if (!walletAddress) {
+                console.log('❌ No wallet address, skipping reward data load');
+                return;
+            }
+
+            console.log('🔄 Loading reward data for wallet:', walletAddress);
+
+            let mainCountdownEligibleCount = 0;
+            let mainCountdownTotalPoints = 0;
+            let mainCountdownClaimedPoints = 0;
+
+            // Check if user is eligible for main countdown reward based on admin configuration
+            try {
+                // First try to get from BackendManager if available
+                let rewardAddressData = null;
+                if (window.backendManager) {
+                    const bmRewardAddress = window.backendManager.getMainCountdownRewardAddress();
+                    if (bmRewardAddress && bmRewardAddress.address) {
+                        rewardAddressData = JSON.stringify(bmRewardAddress);
+                        console.log('📋 Reward address data from BackendManager:', 'Found');
+                    }
+                }
+                
+                // Fallback to localStorage
+                if (!rewardAddressData) {
+                    rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+                    console.log('📋 Reward address data from localStorage:', rewardAddressData ? 'Found' : 'Not found');
+                }
+                
+                if (rewardAddressData) {
+                    const rewardConfig = JSON.parse(rewardAddressData);
+                    console.log('🏆 Configured winner address:', rewardConfig.address);
+                    console.log('🔍 Wallet address:', walletAddress);
+                    console.log('🔍 Address match:', rewardConfig.address === walletAddress);
+                    console.log('✅ Is set:', rewardConfig.isSet);
+                    
+                    if (rewardConfig.address === walletAddress && rewardConfig.isSet) {
+                        console.log('✅ Address matches and reward is set!');
+                        
+                        // Check if reward already exists in localStorage
+                        const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+                        const existingReward = mainCountdownRewards.find(reward => 
+                            reward.winner === walletAddress && 
+                            reward.evidence && 
+                            reward.evidence.eligibilityCriteria === 'admin_configured_address'
+                        );
+                        
+                        if (existingReward) {
+                            console.log('📊 Found existing reward:', existingReward.claimed ? 'Claimed' : 'Unclaimed');
+                            if (!existingReward.claimed) {
+                                mainCountdownEligibleCount++;
+                                mainCountdownTotalPoints += existingReward.amount || 100000;
+                                console.log('✅ Added existing unclaimed reward');
+                            } else {
+                                mainCountdownClaimedPoints += existingReward.amount || 100000;
+                                console.log('📊 Added existing claimed reward');
+                            }
+                        } else {
+                            console.log('🆕 Creating new reward record...');
+                            // Create the reward if it doesn't exist
+                            const newReward = {
+                                id: `main_countdown_reward_${Date.now()}`,
+                                type: 'main-countdown',
+                                round: 1,
+                                amount: 100000,
+                                winner: walletAddress,
+                                timestamp: Date.now(),
+                                claimed: false,
+                                createdAt: new Date().toISOString(),
+                                evidence: {
+                                    address: walletAddress,
+                                    rewardType: 'main_countdown_winner',
+                                    eligibilityCriteria: 'admin_configured_address'
+                                },
+                                rewardDetails: {
+                                    rewardType: 'main_countdown_winner',
+                                    eligibilityCriteria: 'admin_configured_address',
+                                    winnerDeterminationTime: new Date().toISOString()
+                                },
+                                status: {
+                                    created: true,
+                                    claimed: false,
+                                    claimedAt: null,
+                                    claimTransactionHash: null
+                                }
+                            };
+                            
+                            mainCountdownRewards.push(newReward);
+                            localStorage.setItem('mainCountdownRewards', JSON.stringify(mainCountdownRewards));
+                            
+                            // Save to Firebase if available
+                            if (typeof firebase !== 'undefined' && firebase.database) {
+                                firebase.database().ref('mainCountdownRewards').push(newReward);
+                            }
+                            
+                            mainCountdownEligibleCount++;
+                            mainCountdownTotalPoints += 100000;
+                            console.log('✅ Created main countdown reward for configured address');
+                        }
+                    } else {
+                        console.log('❌ Address does not match or reward not set');
+                        if (rewardConfig.address !== walletAddress) {
+                            console.log('❌ Address mismatch');
+                        }
+                        if (!rewardConfig.isSet) {
+                            console.log('❌ Reward not set');
+                        }
+                    }
+                } else {
+                    console.log('❌ No reward address configuration found');
+                }
+            } catch (error) {
+                console.error('❌ Error checking admin configured reward:', error);
+            }
+
+            // Fallback to check existing rewards in localStorage
+            if (mainCountdownEligibleCount === 0 && mainCountdownTotalPoints === 0) {
+                console.log('🔄 Checking fallback rewards...');
+                const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+                mainCountdownRewards.forEach((reward, index) => {
+                    if (reward.winner === walletAddress) {
+                        if (!reward.claimed) {
+                            mainCountdownEligibleCount++;
+                            mainCountdownTotalPoints += reward.amount || 100000;
+                            console.log(`✅ Found fallback reward ${index + 1}: unclaimed`);
+                        } else {
+                            mainCountdownClaimedPoints += reward.amount || 100000;
+                            console.log(`📊 Found fallback reward ${index + 1}: claimed`);
+                        }
+                    }
+                });
+                console.log('✅ Loaded rewards from localStorage fallback');
+            }
+
+            // Check holding rewards (multiple rounds)
+            const holdingRewards = JSON.parse(localStorage.getItem('holdingRewards') || '[]');
+            let holdingEligibleCount = 0;
+            let holdingTotalPoints = 0;
+            let holdingClaimedPoints = 0;
+
+            holdingRewards.forEach((reward, index) => {
+                if (reward.eligibleAddresses && reward.eligibleAddresses.includes(walletAddress)) {
+                    if (!reward.claimed) {
+                        holdingEligibleCount++;
+                        holdingTotalPoints += reward.amount || 3000;
+                    } else {
+                        holdingClaimedPoints += reward.amount || 3000;
+                    }
+                }
+            });
+
+            // Update eligibility flags
+            mainCountdownEligible = mainCountdownEligibleCount > 0;
+            holdingEligible = holdingEligibleCount > 0;
+
+            // Calculate total points (including claimed points for exchange)
+            totalPoints = mainCountdownTotalPoints + holdingTotalPoints + mainCountdownClaimedPoints + holdingClaimedPoints;
+
+            // Store counts for display
+            window.mainCountdownEligibleCount = mainCountdownEligibleCount;
+            window.holdingEligibleCount = holdingEligibleCount;
+            window.mainCountdownTotalPoints = mainCountdownTotalPoints;
+            window.holdingTotalPoints = holdingTotalPoints;
+            window.mainCountdownClaimedPoints = mainCountdownClaimedPoints;
+            window.holdingClaimedPoints = holdingClaimedPoints;
+            
+            console.log('🎯 Final eligibility status:');
+            console.log('  mainCountdownEligible:', mainCountdownEligible);
+            console.log('  mainCountdownEligibleCount:', mainCountdownEligibleCount);
+            console.log('  mainCountdownTotalPoints:', mainCountdownTotalPoints);
+            console.log('  totalPoints:', totalPoints);
+        }
+
+        // Update display
+        function updateDisplay() {
+            console.log('🔄 Updating display...');
+            console.log('  mainCountdownEligible:', mainCountdownEligible);
+            console.log('  mainCountdownTotalPoints:', window.mainCountdownTotalPoints);
+            console.log('  totalPoints:', totalPoints);
+            
+            // Update total points
+            document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
+
+            // Update main countdown reward
+            const mainCountdownStatus = document.getElementById('mainCountdownStatus');
+            const mainCountdownWinner = document.getElementById('mainCountdownWinner');
+            const claimMainBtn = document.getElementById('claimMainCountdownBtn');
+            const mainRewardDiv = document.getElementById('mainCountdownReward');
+            const mainCountdownAmount = document.getElementById('mainCountdownAmount');
+
+            if (mainCountdownEligible) {
+                const roundsText = window.mainCountdownEligibleCount > 1 ? 
+                    ` (${window.mainCountdownEligibleCount} rounds)` : '';
+                mainCountdownStatus.textContent = `Available${roundsText}`;
+                mainCountdownStatus.style.color = '#4CAF50';
+                mainCountdownWinner.textContent = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
+                mainCountdownAmount.textContent = `${window.mainCountdownTotalPoints.toLocaleString()} Points`;
+                claimMainBtn.disabled = false;
+                claimMainBtn.textContent = `🏆 Claim ${window.mainCountdownTotalPoints.toLocaleString()} Points`;
+                mainRewardDiv.className = 'reward-info available';
+                console.log('✅ Main countdown reward set to AVAILABLE');
+            } else {
+                mainCountdownStatus.textContent = 'Not Available';
+                mainCountdownStatus.style.color = '#9CA3AF';
+                mainCountdownWinner.textContent = '-';
+                mainCountdownAmount.textContent = '100,000 Points'; // Default value
+                claimMainBtn.disabled = true;
+                claimMainBtn.textContent = '🏆 Claim Main Countdown Reward';
+                mainRewardDiv.className = 'reward-info';
+                console.log('❌ Main countdown reward set to NOT AVAILABLE');
+            }
+
+            // Update holding reward
+            const holdingStatus = document.getElementById('holdingStatus');
+            const nextSnapshot = document.getElementById('nextSnapshot');
+            const claimHoldingBtn = document.getElementById('claimHoldingBtn');
+            const holdingRewardDiv = document.getElementById('holdingReward');
+            const holdingAmount = document.getElementById('holdingAmount');
+
+            if (holdingEligible) {
+                const roundsText = window.holdingEligibleCount > 1 ? 
+                    ` (${window.holdingEligibleCount} rounds)` : '';
+                holdingStatus.textContent = `Available${roundsText}`;
+                holdingStatus.style.color = '#4CAF50';
+                holdingAmount.textContent = `${window.holdingTotalPoints.toLocaleString()} Points`;
+                nextSnapshot.textContent = 'Now';
+                claimHoldingBtn.disabled = false;
+                claimHoldingBtn.textContent = `💎 Claim ${window.holdingTotalPoints.toLocaleString()} Points`;
+                holdingRewardDiv.className = 'reward-info available';
+            } else {
+                holdingStatus.textContent = 'Not Available';
+                holdingStatus.style.color = '#9CA3AF';
+                holdingAmount.textContent = '3,000 Points'; // Default value
+                nextSnapshot.textContent = 'Check back later';
+                claimHoldingBtn.disabled = true;
+                claimHoldingBtn.textContent = '💎 Claim Holding Reward';
+                holdingRewardDiv.className = 'reward-info';
+            }
+
+            // Update exchange preview
+            updateExchangePreview();
+        }
+
+        // Claim main countdown reward (Enhanced version learning from holding rewards)
+        async function claimMainCountdown() {
+            if (!walletConnected) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            if (!mainCountdownEligible) {
+                showNotification('You are not eligible for this reward!', 'error');
+                return;
+            }
+
+            // Simulate claiming process
+            showNotification(`Claiming ${window.mainCountdownTotalPoints.toLocaleString()} main countdown points...`, 'info');
+            
+            try {
+                // Mark all eligible rewards as claimed with enhanced tracking
+                const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+                let claimedCount = 0;
+                let claimedPoints = 0;
+                const claimTransactionHash = `claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                mainCountdownRewards.forEach((reward, index) => {
+                    if (reward.winner === walletAddress && !reward.claimed) {
+                        // 增强领取状态更新，学习持仓奖励的完整实现
+                        reward.claimed = true;
+                        reward.claimedAt = new Date().toISOString();
+                        
+                        // 更新奖励状态跟踪
+                        if (reward.status) {
+                            reward.status.claimed = true;
+                            reward.status.claimedAt = new Date().toISOString();
+                            reward.status.claimTransactionHash = claimTransactionHash;
+                        }
+                        
+                        // 添加领取详情
+                        reward.claimDetails = {
+                            claimTime: new Date().toISOString(),
+                            claimTransactionHash: claimTransactionHash,
+                            claimMethod: 'wallet_claim',
+                            claimAddress: walletAddress,
+                            claimEvidence: reward.evidence ? {
+                                originalTransaction: reward.evidence,
+                                claimVerification: 'verified_by_snapshot'
+                            } : null
+                        };
+                        
+                        claimedCount++;
+                        claimedPoints += reward.amount || 100000;
+                        
+                        console.log(`Enhanced main countdown reward claimed:`, {
+                            rewardId: reward.id,
+                            winner: reward.winner,
+                            amount: reward.amount,
+                            claimTime: reward.claimedAt,
+                            claimTransactionHash: claimTransactionHash
+                        });
+                    }
+                });
+                
+                // Update Firebase backend first
+                try {
+                    if (typeof firebase !== 'undefined' && firebase.database) {
+                        const rewardsRef = firebase.database().ref('mainCountdownRewards');
+                        const snapshot = await rewardsRef.orderByChild('winner').equalTo(walletAddress).once('value');
+                        const rewards = snapshot.val();
+                        
+                        if (rewards) {
+                            const updates = {};
+                            Object.keys(rewards).forEach((key) => {
+                                const reward = rewards[key];
+                                if (!reward.claimed) {
+                                    updates[`${key}/claimed`] = true;
+                                    updates[`${key}/claimedAt`] = new Date().toISOString();
+                                    updates[`${key}/status/claimed`] = true;
+                                    updates[`${key}/status/claimedAt`] = new Date().toISOString();
+                                    updates[`${key}/status/claimTransactionHash`] = claimTransactionHash;
+                                    updates[`${key}/claimDetails`] = {
+                                        claimTime: new Date().toISOString(),
+                                        claimTransactionHash: claimTransactionHash,
+                                        claimMethod: 'wallet_claim',
+                                        claimAddress: walletAddress,
+                                        claimEvidence: reward.evidence ? {
+                                            originalTransaction: reward.evidence,
+                                            claimVerification: 'verified_by_snapshot'
+                                        } : null
+                                    };
+                                }
+                            });
+                            
+                            await rewardsRef.update(updates);
+                            console.log('✅ Updated rewards in Firebase backend');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to update Firebase rewards:', error);
+                }
+
+                // Also update localStorage as backup
+                if (window.backendManager) {
+                    window.backendManager.setLocalStorageWithSync('mainCountdownRewards', mainCountdownRewards);
+                } else {
+                    localStorage.setItem('mainCountdownRewards', JSON.stringify(mainCountdownRewards));
+                }
+
+                // Sync claimed points to backend
+                await syncClaimedPointsToBackend(walletAddress, claimedPoints, 'main-countdown');
+
+                // Add to reward history with enhanced details
+                addToRewardHistory(`Main Countdown Winner (${claimedCount} rounds)`, claimedPoints, new Date().toISOString(), {
+                    rewardType: 'main-countdown',
+                    claimTransactionHash: claimTransactionHash,
+                    evidence: mainCountdownRewards.find(r => r.winner === walletAddress && r.claimed)?.evidence
+                });
+
+                // Update display
+                mainCountdownEligible = false;
+                loadRewardData();
+                updateDisplay();
+
+                showNotification(`Successfully claimed ${claimedPoints.toLocaleString()} points! 🏆`, 'success');
+                
+                // 记录领取统计
+                console.log('Main countdown reward claim statistics:', {
+                    totalClaimed: claimedCount,
+                    totalPoints: claimedPoints,
+                    claimTransactionHash: claimTransactionHash,
+                    claimTime: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Failed to claim main countdown reward:', error);
+                showNotification(`Failed to claim reward: ${error.message}`, 'error');
+            }
+        }
+
+        // Claim holding reward
+        async function claimHolding() {
+            if (!walletConnected) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            if (!holdingEligible) {
+                showNotification('You are not eligible for this reward!', 'error');
+                return;
+            }
+
+            // Simulate claiming process
+            showNotification(`Claiming ${window.holdingTotalPoints.toLocaleString()} holding points...`, 'info');
+            
+            try {
+                // Mark all eligible rewards as claimed
+                const holdingRewards = JSON.parse(localStorage.getItem('holdingRewards') || '[]');
+                let claimedCount = 0;
+                let claimedPoints = 0;
+                
+                holdingRewards.forEach((reward, index) => {
+                    if (reward.eligibleAddresses && reward.eligibleAddresses.includes(walletAddress) && !reward.claimed) {
+                        reward.claimed = true;
+                        reward.claimedAt = new Date().toISOString();
+                        claimedCount++;
+                        claimedPoints += reward.amount || 3000;
+                    }
+                });
+                
+                localStorage.setItem('holdingRewards', JSON.stringify(holdingRewards));
+
+                // Sync claimed points to backend
+                await syncClaimedPointsToBackend(walletAddress, claimedPoints, 'holding');
+
+                // Add to reward history with enhanced details
+                addToRewardHistory(`Holding Reward (${claimedCount} rounds)`, claimedPoints, new Date().toISOString(), {
+                    rewardType: 'holding',
+                    claimTransactionHash: `holding_claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    evidence: holdingRewards.find(r => r.eligibleAddresses && r.eligibleAddresses.includes(walletAddress) && r.claimed)?.snapshotId
+                });
+
+                // Update display
+                holdingEligible = false;
+                loadRewardData();
+                updateDisplay();
+
+                showNotification(`Successfully claimed ${claimedPoints.toLocaleString()} points! 💎`, 'success');
+            } catch (error) {
+                console.error('Failed to claim holding reward:', error);
+                showNotification(`Failed to claim reward: ${error.message}`, 'error');
+            }
+        }
+
+        // Add to reward history (Enhanced version)
+        function addToRewardHistory(type, amount, timestamp, additionalDetails = {}) {
+            const history = JSON.parse(localStorage.getItem('rewardHistory') || '[]');
+            const historyEntry = {
+                type,
+                amount,
+                timestamp,
+                address: walletAddress,
+                // 增强历史记录，学习持仓奖励的完整实现
+                details: {
+                    rewardType: additionalDetails.rewardType || 'unknown',
+                    claimTransactionHash: additionalDetails.claimTransactionHash || null,
+                    evidence: additionalDetails.evidence || null,
+                    claimMethod: additionalDetails.claimMethod || 'wallet_claim',
+                    claimVerification: additionalDetails.claimVerification || 'standard'
+                }
+            };
+            
+            history.push(historyEntry);
+            
+            // 保持历史记录数量限制
+            if (history.length > 100) {
+                history.shift();
+            }
+            
+            localStorage.setItem('rewardHistory', JSON.stringify(history));
+            updateRewardHistory();
+            
+            console.log('Enhanced reward history entry added:', historyEntry);
+        }
+
+        // Update reward history display
+        function updateRewardHistory() {
+            const history = JSON.parse(localStorage.getItem('rewardHistory') || '[]');
+            const historyDiv = document.getElementById('rewardHistory');
+
+            if (history.length === 0) {
+                historyDiv.innerHTML = '<p style="text-align: center; color: #9CA3AF; font-style: italic;">No rewards claimed yet. Start playing to earn rewards!</p>';
+                return;
+            }
+
+            let html = '';
+            history.forEach((reward, index) => {
+                const date = new Date(reward.timestamp).toLocaleDateString();
+                const time = new Date(reward.timestamp).toLocaleTimeString();
+                
+                html += `
+                    <div style="background: #374151; padding: 15px; border-radius: 8px; margin: 10px 0; border: 2px solid #000;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: #FFDD00;">${reward.type}</strong>
+                                <div style="color: #9CA3AF; font-size: 0.9rem;">${date} at ${time}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="color: #4CAF50; font-weight: bold; font-size: 1.2rem;">+${reward.amount.toLocaleString()}</div>
+                                <div style="color: #9CA3AF; font-size: 0.8rem;">points</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            historyDiv.innerHTML = html;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+            } else if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+            }
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Close claim reward page
+        function closeClaimReward() {
+            window.parent.postMessage({
+                type: 'closeClaimReward',
+                data: {}
+            }, '*');
+        }
+
+        // Listen for wallet connection updates
+        window.addEventListener('message', async (event) => {
+            if (event.data.type === 'walletConnected') {
+                walletConnected = true;
+                walletAddress = event.data.address;
+                await updateWalletDisplay();
+            } else if (event.data.type === 'walletDisconnected') {
+                walletConnected = false;
+                walletAddress = '';
+                await updateWalletDisplay();
+            }
+        });
+
+        // Listen for ESC key to close
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeClaimReward();
+            }
+        });
+
+        // Initialize reward history
+        updateRewardHistory();
+
+        // Token Exchange Functions
+        function updateExchangePreview() {
+            const tokenAmount = totalPoints * 10; // 1:10 ratio - exchange all points
+            document.getElementById('availablePoints').textContent = totalPoints.toLocaleString();
+            document.getElementById('tokenAmount').textContent = tokenAmount.toLocaleString();
+            
+            updateExchangeButton();
+        }
+
+        function updateExchangeButton() {
+            const exchangeBtn = document.getElementById('exchangeBtn');
+            const exchangeStatus = document.getElementById('exchangeStatus');
+            
+            if (!walletConnected) {
+                exchangeBtn.disabled = true;
+                exchangeStatus.innerHTML = '<span>Connect wallet to exchange tokens</span>';
+                exchangeStatus.className = 'exchange-status';
+                return;
+            }
+            
+            if (totalPoints <= 0) {
+                exchangeBtn.disabled = true;
+                exchangeStatus.innerHTML = '<span>No points available to exchange</span>';
+                exchangeStatus.className = 'exchange-status error';
+                return;
+            }
+            
+            exchangeBtn.disabled = false;
+            exchangeStatus.innerHTML = `<span>Ready to exchange all ${totalPoints.toLocaleString()} points for ${(totalPoints * 10).toLocaleString()} MEME tokens</span>`;
+            exchangeStatus.className = 'exchange-status success';
+        }
+
+        async function exchangeTokens() {
+            if (!walletConnected || !walletAddress) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            // Get latest points balance from backend (贪吃蛇游戏积分系统)
+            const backendPoints = await getBackendPointsBalance(walletAddress);
+            const availablePoints = backendPoints !== null ? backendPoints : totalPoints;
+            const exchangeAmount = availablePoints; // Exchange all available points
+
+            if (exchangeAmount <= 0) {
+                showNotification('No points available to exchange!', 'error');
+                return;
+            }
+
+            const tokenAmount = exchangeAmount * 10;
+            
+            // Update UI to show loading state
+            const exchangeBtn = document.getElementById('exchangeBtn');
+            const exchangeStatus = document.getElementById('exchangeStatus');
+            
+            exchangeBtn.disabled = true;
+            exchangeBtn.textContent = '🔄 Processing Exchange...';
+            exchangeStatus.innerHTML = '<span>Processing exchange with Firebase cloud function...</span>';
+            exchangeStatus.className = 'exchange-status loading';
+
+            try {
+                // Call Firebase cloud function
+                const result = await callFirebaseClaimToken(walletAddress, exchangeAmount, tokenAmount);
+                
+                if (result.success) {
+                    // Update local storage to reflect the exchange (贪吃蛇游戏积分系统)
+                    updatePointsAfterExchange(exchangeAmount);
+                    
+                    // Update UI
+                    exchangeBtn.textContent = '✅ Exchange Successful!';
+                    exchangeStatus.innerHTML = `<span>Successfully exchanged ${exchangeAmount.toLocaleString()} points for ${tokenAmount.toLocaleString()} MEME tokens!</span>`;
+                    exchangeStatus.className = 'exchange-status success';
+                    
+                    // Show success notification
+                    showNotification(`Successfully exchanged ${exchangeAmount.toLocaleString()} points for ${tokenAmount.toLocaleString()} MEME tokens! 🪙`, 'success');
+                    
+                    // Add to reward history
+                    addToRewardHistory(`Token Exchange`, exchangeAmount, new Date().toISOString());
+                    
+                    // Update display (贪吃蛇游戏积分系统)
+                    updateExchangePreview();
+                    loadRewardData();
+                    updateDisplay();
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        exchangeBtn.textContent = '🪙 Exchange All Points for Tokens';
+                        exchangeBtn.disabled = false;
+                        updateExchangeButton();
+                    }, 3000);
+                    
+                } else {
+                    throw new Error(result.error || 'Exchange failed');
+                }
+                
+            } catch (error) {
+                console.error('Exchange error:', error);
+                
+                // Reset UI to error state
+                exchangeBtn.textContent = '❌ Exchange Failed';
+                exchangeStatus.innerHTML = `<span>Exchange failed: ${error.message}</span>`;
+                exchangeStatus.className = 'exchange-status error';
+                
+                showNotification(`Exchange failed: ${error.message}`, 'error');
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    exchangeBtn.textContent = '🪙 Exchange All Points for Tokens';
+                    exchangeBtn.disabled = false;
+                    updateExchangeButton();
+                }, 3000);
+            }
+        }
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5Z5ieEbAcfQX0kxGSn9ldGXhzvAwx_8M",
+            authDomain: "chat-294cc.firebaseapp.com",
+            databaseURL: "https://chat-294cc-default-rtdb.firebaseio.com",
+            projectId: "chat-294cc",
+            storageBucket: "chat-294cc.firebasestorage.app",
+            messagingSenderId: "913615304269",
+            appId: "1:913615304269:web:0274ffaccb8e6b678e4e04",
+            measurementId: "G-SJR9NDW86B"
+        };
+
+        // Sync claimed points to backend - 使用贪吃蛇游戏的积分系统
+        async function syncClaimedPointsToBackend(walletAddress, pointsAmount, rewardType) {
+            try {
+                // Initialize Firebase if not already initialized
+                if (!window.firebase) {
+                    // Load Firebase SDK
+                    await loadFirebaseSDK();
+                }
+
+                // Wait for Firebase to be fully initialized
+                if (!firebase.database) {
+                    console.log('Waiting for Firebase Database to initialize...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                // 使用贪吃蛇游戏的积分系统 - 直接更新 Realtime Database
+                const userRef = firebase.database().ref(`users/${walletAddress}`);
+                const userSnap = await userRef.once('value');
+                const userData = userSnap.val() || {};
+                const currentScore = userData.score || 0;
+                const newScore = currentScore + pointsAmount;
+
+                // 更新用户积分（与贪吃蛇游戏使用相同的数据结构）
+                await userRef.update({
+                    score: newScore,
+                    lastUpdated: Date.now(),
+                    walletAddress: walletAddress
+                });
+
+                console.log('Points synced to backend:', { currentScore, newScore });
+                return { success: true, currentScore, newScore };
+                
+            } catch (error) {
+                console.error('Failed to sync points to backend:', error);
+                // Don't throw error, just log it - local storage is still updated
+                return null;
+            }
+        }
+
+        // Get points balance from backend - 使用贪吃蛇游戏的积分系统
+        async function getBackendPointsBalance(walletAddress) {
+            try {
+                // Validate wallet address
+                if (!walletAddress) {
+                    console.error('Wallet address is required for getBackendPointsBalance');
+                    return null;
+                }
+
+                // Initialize Firebase if not already initialized
+                if (!window.firebase) {
+                    // Load Firebase SDK
+                    await loadFirebaseSDK();
+                }
+
+                // Wait for Firebase to be fully initialized
+                if (!firebase.database) {
+                    console.log('Waiting for Firebase Database to initialize...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                // 直接从贪吃蛇游戏的 Realtime Database 获取用户积分
+                const userRef = firebase.database().ref(`users/${walletAddress}`);
+                const userSnap = await userRef.once('value');
+                const userData = userSnap.val();
+                const score = userData && userData.score ? parseInt(userData.score) : 0;
+
+                console.log('Backend points balance:', score);
+                return score;
+                
+            } catch (error) {
+                console.error('Failed to get backend points balance:', error);
+                // Return null to use local points as fallback
+                return null;
+            }
+        }
+
+        // Sync points balance from backend - 使用贪吃蛇游戏的积分系统
+        async function syncPointsFromBackend() {
+            if (!walletAddress) return;
+            
+            try {
+                const backendPoints = await getBackendPointsBalance(walletAddress);
+                if (backendPoints !== null) {
+                    // Update total points with backend balance (贪吃蛇游戏积分)
+                    totalPoints = backendPoints;
+                    updateDisplay();
+                    console.log('Points synced from backend (贪吃蛇游戏):', backendPoints);
+                }
+            } catch (error) {
+                console.error('Failed to sync points from backend:', error);
+            }
+        }
+
+        async function callFirebaseClaimToken(walletAddress, pointsAmount, tokenAmount) {
+            // Validate wallet address
+            if (!walletAddress) {
+                console.error('Wallet address is required for callFirebaseClaimToken');
+                return {
+                    success: false,
+                    error: '钱包地址不能为空'
+                };
+            }
+
+            // Initialize Firebase if not already initialized
+            if (!window.firebase) {
+                // Load Firebase SDK
+                await loadFirebaseSDK();
+            }
+
+            // Wait for Firebase to be fully initialized
+            if (!firebase.functions) {
+                console.log('Waiting for Firebase Functions to initialize...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            try {
+                // 调用贪吃蛇游戏的 claimToken Cloud Function
+                const callable = firebase.functions().httpsCallable('claimToken');
+                const result = await callable({
+                    wallet: walletAddress
+                });
+
+                return {
+                    success: true,
+                    data: result.data
+                };
+                
+            } catch (error) {
+                console.error('Firebase cloud function error:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        async function loadFirebaseSDK() {
+            return new Promise((resolve, reject) => {
+                // Check if Firebase is already loaded
+                if (window.firebase) {
+                    resolve();
+                    return;
+                }
+
+                // Load Firebase App (compat version for global firebase object) - using same version as successful file
+                const firebaseAppScript = document.createElement('script');
+                firebaseAppScript.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js';
+                firebaseAppScript.onload = () => {
+                    // Load Firebase Database (compat version for global firebase object) - using same version as successful file
+                    const firebaseDatabaseScript = document.createElement('script');
+                    firebaseDatabaseScript.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js';
+                    firebaseDatabaseScript.onload = () => {
+                        // Load Firebase Functions (compat version for global firebase object) - using same version as successful file
+                        const firebaseFunctionsScript = document.createElement('script');
+                        firebaseFunctionsScript.src = 'https://www.gstatic.com/firebasejs/9.22.2/firebase-functions-compat.js';
+                        firebaseFunctionsScript.onload = () => {
+                            // Initialize Firebase only if not already initialized - using same approach as successful file
+                            if (!firebase.apps.length) {
+                                firebase.initializeApp(firebaseConfig);
+                            }
+                            resolve();
+                        };
+                        firebaseFunctionsScript.onerror = reject;
+                        document.head.appendChild(firebaseFunctionsScript);
+                    };
+                    firebaseDatabaseScript.onerror = reject;
+                    document.head.appendChild(firebaseDatabaseScript);
+                };
+                firebaseAppScript.onerror = reject;
+                document.head.appendChild(firebaseAppScript);
+            });
+        }
+
+        function updatePointsAfterExchange(exchangeAmount) {
+            // Update main countdown rewards
+            const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+            let remainingPoints = exchangeAmount;
+            
+            for (let i = 0; i < mainCountdownRewards.length && remainingPoints > 0; i++) {
+                if (mainCountdownRewards[i].winner === walletAddress && !mainCountdownRewards[i].claimed) {
+                    const pointsToDeduct = Math.min(remainingPoints, mainCountdownRewards[i].amount || 100000);
+                    mainCountdownRewards[i].amount = (mainCountdownRewards[i].amount || 100000) - pointsToDeduct;
+                    remainingPoints -= pointsToDeduct;
+                    
+                    // If all points are used, mark as claimed
+                    if (mainCountdownRewards[i].amount <= 0) {
+                        mainCountdownRewards[i].claimed = true;
+                        mainCountdownRewards[i].claimedAt = new Date().toISOString();
+                    }
+                }
+            }
+            
+            // Update holding rewards
+            const holdingRewards = JSON.parse(localStorage.getItem('holdingRewards') || '[]');
+            for (let i = 0; i < holdingRewards.length && remainingPoints > 0; i++) {
+                if (holdingRewards[i].eligibleAddresses && holdingRewards[i].eligibleAddresses.includes(walletAddress) && !holdingRewards[i].claimed) {
+                    const pointsToDeduct = Math.min(remainingPoints, holdingRewards[i].amount || 3000);
+                    holdingRewards[i].amount = (holdingRewards[i].amount || 3000) - pointsToDeduct;
+                    remainingPoints -= pointsToDeduct;
+                    
+                    // If all points are used, mark as claimed
+                    if (holdingRewards[i].amount <= 0) {
+                        holdingRewards[i].claimed = true;
+                        holdingRewards[i].claimedAt = new Date().toISOString();
+                    }
+                }
+            }
+            
+            // Save updated rewards
+            localStorage.setItem('mainCountdownRewards', JSON.stringify(mainCountdownRewards));
+            localStorage.setItem('holdingRewards', JSON.stringify(holdingRewards));
+        }
+
+        // Update exchange button state when wallet connection changes
+        async function updateWalletDisplay() {
+            const walletStatus = document.getElementById('walletStatus');
+            const walletAddressEl = document.getElementById('walletAddress');
+            const connectBtn = document.getElementById('connectWalletBtn');
+
+            if (walletConnected && walletAddress) {
+                walletStatus.textContent = 'Wallet Connected';
+                walletStatus.className = 'wallet-status connected';
+                walletAddressEl.textContent = `Address: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+                connectBtn.textContent = '🔗 Wallet Connected';
+                connectBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+                
+                // Reload reward data when wallet is connected
+                loadRewardData();
+                updateDisplay();
+                updateExchangeButton(); // Update exchange button state
+                
+                // Sync points from backend to ensure accurate balance (贪吃蛇游戏积分)
+                try {
+                    await syncPointsFromBackend();
+                } catch (error) {
+                    console.error('Failed to sync points from backend:', error);
+                }
+            } else {
+                walletStatus.textContent = 'Wallet Not Connected';
+                walletStatus.className = 'wallet-status disconnected';
+                walletAddressEl.textContent = '';
+                connectBtn.textContent = '🔗 Connect Wallet';
+                connectBtn.style.background = 'linear-gradient(135deg, #FF2E63, #9D4EDD)';
+                updateExchangeButton(); // Update exchange button state
+            }
+        }
+    </script>
+</body>
+</html> 

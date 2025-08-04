@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Reward Claim - MEME TO THE MOON</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .debug-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #4CAF50; }
+        .error { background: #f44336; }
+        .warning { background: #ff9800; }
+        .info { background: #2196F3; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #45a049; }
+        .code {
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Reward Claim</h1>
+    
+    <div class="debug-section">
+        <h2>1. 钱包连接状态</h2>
+        <div id="walletStatus" class="status info">检查中...</div>
+        <button onclick="connectWallet()">连接钱包</button>
+        <button onclick="checkWalletStatus()">刷新钱包状态</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>2. 后台奖励地址配置</h2>
+        <div id="backendConfig" class="status info">检查中...</div>
+        <button onclick="checkBackendConfig()">刷新后台配置</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>3. localStorage 数据</h2>
+        <div id="localStorageData" class="status info">检查中...</div>
+        <button onclick="checkLocalStorage()">刷新 localStorage</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>4. 奖励资格检查</h2>
+        <div id="eligibilityCheck" class="status info">检查中...</div>
+        <button onclick="checkEligibility()">检查资格</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>5. 操作日志</h2>
+        <div id="log" class="code"></div>
+        <button onclick="clearLog()">清空日志</button>
+    </div>
+
+    <script src="js/modules/BackendManager.js"></script>
+    <script>
+        let walletConnected = false;
+        let walletAddress = null;
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        async function connectWallet() {
+            try {
+                log('尝试连接钱包...');
+                
+                if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+                    const response = await window.solana.connect();
+                    walletAddress = response.publicKey.toString();
+                    walletConnected = true;
+                    log(`✅ 钱包连接成功: ${walletAddress}`);
+                    checkWalletStatus();
+                } else {
+                    log('❌ Phantom 钱包未安装');
+                    document.getElementById('walletStatus').innerHTML = 
+                        '<div class="status error">Phantom 钱包未安装</div>';
+                }
+            } catch (error) {
+                log(`❌ 钱包连接失败: ${error.message}`);
+                document.getElementById('walletStatus').innerHTML = 
+                    `<div class="status error">连接失败: ${error.message}</div>`;
+            }
+        }
+
+        function checkWalletStatus() {
+            const statusDiv = document.getElementById('walletStatus');
+            
+            if (walletConnected && walletAddress) {
+                statusDiv.innerHTML = `
+                    <div class="status success">
+                        ✅ 钱包已连接<br>
+                        地址: ${walletAddress}<br>
+                        短地址: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}
+                    </div>
+                `;
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="status warning">
+                        ⚠️ 钱包未连接<br>
+                        请点击"连接钱包"按钮
+                    </div>
+                `;
+            }
+        }
+
+        function checkBackendConfig() {
+            try {
+                log('检查后台配置...');
+                
+                // 初始化 BackendManager
+                if (!window.backendManager) {
+                    window.backendManager = new BackendManager();
+                    window.backendManager.init();
+                }
+                
+                const rewardConfig = window.backendManager.getMainCountdownRewardAddress();
+                const configDiv = document.getElementById('backendConfig');
+                
+                if (rewardConfig && rewardConfig.address && rewardConfig.isSet) {
+                    configDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ 后台已配置奖励地址<br>
+                            地址: ${rewardConfig.address}<br>
+                            金额: ${rewardConfig.amount} 积分<br>
+                            设置时间: ${rewardConfig.lastUpdate}<br>
+                            短地址: ${rewardConfig.address.slice(0, 6)}...${rewardConfig.address.slice(-4)}
+                        </div>
+                    `;
+                    log(`✅ 后台配置: ${rewardConfig.address}`);
+                } else {
+                    configDiv.innerHTML = `
+                        <div class="status warning">
+                            ⚠️ 后台未配置奖励地址<br>
+                            请在后台设置奖励地址
+                        </div>
+                    `;
+                    log('⚠️ 后台未配置奖励地址');
+                }
+            } catch (error) {
+                log(`❌ 检查后台配置失败: ${error.message}`);
+                document.getElementById('backendConfig').innerHTML = 
+                    `<div class="status error">检查失败: ${error.message}</div>`;
+            }
+        }
+
+        function checkLocalStorage() {
+            try {
+                log('检查 localStorage 数据...');
+                
+                const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+                const mainCountdownRewards = localStorage.getItem('mainCountdownRewards');
+                
+                const storageDiv = document.getElementById('localStorageData');
+                let html = '<div class="status info">';
+                
+                if (rewardAddressData) {
+                    const data = JSON.parse(rewardAddressData);
+                    html += `
+                        ✅ mainCountdownRewardAddress 存在<br>
+                        地址: ${data.address}<br>
+                        金额: ${data.amount} 积分<br>
+                        已设置: ${data.isSet}<br>
+                        短地址: ${data.address.slice(0, 6)}...${data.address.slice(-4)}<br><br>
+                    `;
+                    log(`✅ localStorage 奖励地址: ${data.address}`);
+                } else {
+                    html += '❌ mainCountdownRewardAddress 不存在<br><br>';
+                    log('❌ localStorage 中无奖励地址数据');
+                }
+                
+                if (mainCountdownRewards) {
+                    const rewards = JSON.parse(mainCountdownRewards);
+                    html += `✅ mainCountdownRewards 存在 (${rewards.length} 条记录)<br>`;
+                    rewards.forEach((reward, index) => {
+                        html += `
+                            记录 ${index + 1}: ${reward.winner} - ${reward.amount} 积分 - ${reward.claimed ? '已领取' : '未领取'}<br>
+                        `;
+                    });
+                    log(`✅ localStorage 奖励记录: ${rewards.length} 条`);
+                } else {
+                    html += '❌ mainCountdownRewards 不存在';
+                    log('❌ localStorage 中无奖励记录');
+                }
+                
+                html += '</div>';
+                storageDiv.innerHTML = html;
+                
+            } catch (error) {
+                log(`❌ 检查 localStorage 失败: ${error.message}`);
+                document.getElementById('localStorageData').innerHTML = 
+                    `<div class="status error">检查失败: ${error.message}</div>`;
+            }
+        }
+
+        function checkEligibility() {
+            try {
+                log('检查奖励资格...');
+                
+                if (!walletConnected || !walletAddress) {
+                    document.getElementById('eligibilityCheck').innerHTML = 
+                        '<div class="status warning">⚠️ 请先连接钱包</div>';
+                    log('⚠️ 钱包未连接，无法检查资格');
+                    return;
+                }
+                
+                const rewardAddressData = localStorage.getItem('mainCountdownRewardAddress');
+                if (!rewardAddressData) {
+                    document.getElementById('eligibilityCheck').innerHTML = 
+                        '<div class="status warning">⚠️ 后台未配置奖励地址</div>';
+                    log('⚠️ 后台未配置奖励地址');
+                    return;
+                }
+                
+                const rewardConfig = JSON.parse(rewardAddressData);
+                const eligibilityDiv = document.getElementById('eligibilityCheck');
+                
+                if (rewardConfig.address === walletAddress && rewardConfig.isSet) {
+                    // 检查是否已有奖励记录
+                    const mainCountdownRewards = JSON.parse(localStorage.getItem('mainCountdownRewards') || '[]');
+                    const existingReward = mainCountdownRewards.find(reward => 
+                        reward.winner === walletAddress && 
+                        reward.evidence && 
+                        reward.evidence.eligibilityCriteria === 'admin_configured_address'
+                    );
+                    
+                    if (existingReward) {
+                        if (!existingReward.claimed) {
+                            eligibilityDiv.innerHTML = `
+                                <div class="status success">
+                                    ✅ 符合领取条件<br>
+                                    奖励金额: ${existingReward.amount} 积分<br>
+                                    状态: 未领取<br>
+                                    可以领取奖励！
+                                </div>
+                            `;
+                            log('✅ 符合领取条件，可以领取奖励');
+                        } else {
+                            eligibilityDiv.innerHTML = `
+                                <div class="status warning">
+                                    ⚠️ 奖励已领取<br>
+                                    奖励金额: ${existingReward.amount} 积分<br>
+                                    领取时间: ${existingReward.claimedAt}
+                                </div>
+                            `;
+                            log('⚠️ 奖励已领取');
+                        }
+                    } else {
+                        eligibilityDiv.innerHTML = `
+                            <div class="status warning">
+                                ⚠️ 地址匹配但无奖励记录<br>
+                                可能需要刷新页面或重新检查
+                            </div>
+                        `;
+                        log('⚠️ 地址匹配但无奖励记录');
+                    }
+                } else {
+                    eligibilityDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ 不符合领取条件<br>
+                            当前钱包地址: ${walletAddress}<br>
+                            配置的奖励地址: ${rewardConfig.address}<br>
+                            地址不匹配
+                        </div>
+                    `;
+                    log(`❌ 地址不匹配: 当前=${walletAddress}, 配置=${rewardConfig.address}`);
+                }
+                
+            } catch (error) {
+                log(`❌ 检查资格失败: ${error.message}`);
+                document.getElementById('eligibilityCheck').innerHTML = 
+                    `<div class="status error">检查失败: ${error.message}</div>`;
+            }
+        }
+
+        // 页面加载时自动检查
+        window.onload = function() {
+            log('页面加载完成，开始自动检查...');
+            checkWalletStatus();
+            checkBackendConfig();
+            checkLocalStorage();
+            setTimeout(() => {
+                if (walletConnected) {
+                    checkEligibility();
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 

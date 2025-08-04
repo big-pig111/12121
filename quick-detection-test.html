@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速检测测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ddd;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        
+        .config-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        button.danger {
+            background: #dc3545;
+        }
+        
+        button.danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 快速检测测试</h1>
+        
+        <div id="statusResults">
+            <div class="status-item">
+                <strong>正在检查...</strong>
+            </div>
+        </div>
+        
+        <div>
+            <button onclick="checkStatus()">🔄 刷新状态</button>
+            <button onclick="enableDetection()">✅ 启用检测</button>
+            <button onclick="disableDetection()" class="danger">❌ 禁用检测</button>
+            <button onclick="showConfig()">⚙️ 显示配置</button>
+        </div>
+        
+        <div id="configDisplay" class="config-display" style="display: none;"></div>
+    </div>
+
+    <script>
+        function checkStatus() {
+            const results = document.getElementById('statusResults');
+            results.innerHTML = '';
+            
+            // 检查检测配置
+            const detectionConfig = localStorage.getItem('memeCoinDetection');
+            if (detectionConfig) {
+                try {
+                    const config = JSON.parse(detectionConfig);
+                    addStatusItem('检测配置', 'success', '已配置');
+                    addStatusItem('检测状态', config.isRunning ? 'success' : 'error', 
+                                config.isRunning ? '运行中' : '已停止');
+                    addStatusItem('RPC URL', config.rpcUrl ? 'success' : 'error', 
+                                config.rpcUrl || '未设置');
+                    addStatusItem('Token 地址', config.tokenAddress ? 'success' : 'error', 
+                                config.tokenAddress || '未设置');
+                } catch (error) {
+                    addStatusItem('检测配置', 'error', '配置解析失败: ' + error.message);
+                }
+            } else {
+                addStatusItem('检测配置', 'error', '未配置');
+            }
+            
+            // 检查模块
+            addStatusItem('TransactionTracker', 
+                         typeof window.TransactionTracker !== 'undefined' ? 'success' : 'error',
+                         typeof window.TransactionTracker !== 'undefined' ? '已加载' : '未加载');
+            
+            addStatusItem('BackendManager', 
+                         typeof window.BackendManager !== 'undefined' ? 'success' : 'error',
+                         typeof window.BackendManager !== 'undefined' ? '已加载' : '未加载');
+            
+            addStatusItem('MemeCoinApp', 
+                         typeof window.memeCoinApp !== 'undefined' ? 'success' : 'error',
+                         typeof window.memeCoinApp !== 'undefined' ? '已初始化' : '未初始化');
+            
+            // 检查 Solana Web3
+            addStatusItem('Solana Web3', 
+                         typeof window.solanaWeb3 !== 'undefined' ? 'success' : 'error',
+                         typeof window.solanaWeb3 !== 'undefined' ? '已加载' : '未加载');
+        }
+        
+        function addStatusItem(label, type, message) {
+            const results = document.getElementById('statusResults');
+            const item = document.createElement('div');
+            item.className = `status-item status-${type}`;
+            item.innerHTML = `<strong>${label}:</strong> ${message}`;
+            results.appendChild(item);
+        }
+        
+        function enableDetection() {
+            const currentConfig = localStorage.getItem('memeCoinDetection');
+            let config = currentConfig ? JSON.parse(currentConfig) : {};
+            
+            config.isRunning = true;
+            config.lastUpdated = new Date().toISOString();
+            
+            localStorage.setItem('memeCoinDetection', JSON.stringify(config));
+            
+            alert('✅ 检测已启用');
+            checkStatus();
+        }
+        
+        function disableDetection() {
+            const currentConfig = localStorage.getItem('memeCoinDetection');
+            let config = currentConfig ? JSON.parse(currentConfig) : {};
+            
+            config.isRunning = false;
+            config.lastUpdated = new Date().toISOString();
+            
+            localStorage.setItem('memeCoinDetection', JSON.stringify(config));
+            
+            alert('❌ 检测已禁用');
+            checkStatus();
+        }
+        
+        function showConfig() {
+            const display = document.getElementById('configDisplay');
+            const detectionConfig = localStorage.getItem('memeCoinDetection');
+            
+            if (detectionConfig) {
+                try {
+                    const config = JSON.parse(detectionConfig);
+                    display.textContent = JSON.stringify(config, null, 2);
+                    display.style.display = 'block';
+                } catch (error) {
+                    display.textContent = '配置解析失败: ' + error.message;
+                    display.style.display = 'block';
+                }
+            } else {
+                display.textContent = '未找到检测配置';
+                display.style.display = 'block';
+            }
+        }
+        
+        // 页面加载时自动检查
+        document.addEventListener('DOMContentLoaded', () => {
+            checkStatus();
+        });
+    </script>
+</body>
+</html> 
